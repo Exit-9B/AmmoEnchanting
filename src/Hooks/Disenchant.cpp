@@ -1,6 +1,7 @@
 #include "Disenchant.h"
 
 #include "Data/CreatedObjectManager.h"
+#include "Ext/TESAmmo.h"
 #include "RE/Offset.h"
 
 namespace Hooks
@@ -26,8 +27,8 @@ namespace Hooks
 	{
 		const auto form = a_entry->GetObject();
 		if (const auto ammo = form ? form->As<RE::TESAmmo>() : nullptr) {
-			const auto projectile = ammo ? ammo->data.projectile : nullptr;
-			const auto explosion = projectile ? projectile->data.explosionType : nullptr;
+
+			const auto explosion = Ext::TESAmmo::GetExplosion(ammo);
 			const auto enchantment = explosion ? explosion->formEnchanting : nullptr;
 
 			if (enchantment) {

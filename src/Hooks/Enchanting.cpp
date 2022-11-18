@@ -29,7 +29,7 @@ namespace Hooks
 			0x299);
 
 		// jmp from 0x208 to 0x299
-		std::vector<std::uint8_t> patch1{ 0xE9, 0x8C, 0x00, 0x00, 0x00 };
+		std::array<std::uint8_t, 5> patch1{ 0xE9, 0x8C, 0x00, 0x00, 0x00 };
 
 		struct Patch : Xbyak::CodeGenerator
 		{
@@ -156,7 +156,6 @@ namespace Hooks
 				a_menu->createEffectFunctor.createdEffects);
 
 		case RE::FormType::Ammo:
-
 			creatingCount = Ext::EnchantConstructMenu::GetAmmoEnchantQuantity(a_menu);
 			return Data::CreatedObjectManager::GetSingleton()->CreateAmmoEnchantment(
 				a_menu->createEffectFunctor.createdEffects);

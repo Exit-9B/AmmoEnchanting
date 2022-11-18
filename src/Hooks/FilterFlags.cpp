@@ -1,9 +1,12 @@
 #include "FilterFlags.h"
 
 #include "Data/CreatedObjectManager.h"
+#include "Ext/TESAmmo.h"
 #include "RE/Offset.h"
 
 #include <xbyak/xbyak.h>
+
+#undef GetObject
 
 namespace Hooks
 {
@@ -11,8 +14,7 @@ namespace Hooks
 	{
 		ConstructorPatch();
 
-		EnchantEntryPatch();
-		DisenchantEntryPatch();
+		ItemEntryPatch();
 		EffectEntryPatch();
 
 		DisenchantSelectPatch();
@@ -58,96 +60,41 @@ namespace Hooks
 		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
 	}
 
-	void FilterFlags::EnchantEntryPatch()
+	void FilterFlags::ItemEntryPatch()
 	{
 		static const auto hook = REL::Relocation<std::uintptr_t>(
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::PopulateEntryList,
-			0x189);
-
-		if (!REL::make_pattern<"0F 85 85 01 00 00">().match(hook.address())) {
-			util::report_and_fail("Failed to install hook"sv);
-		}
+			0x140);
 
 		struct Patch : Xbyak::CodeGenerator
 		{
 			Patch()
 			{
-				Xbyak::Label soulGem;
 				Xbyak::Label skip;
 
-				// cmp al, FormType::SoulGem
-				jz(soulGem);
+				mov(rax, util::function_ptr(&FilterFlags::GetFilterFlag));
+				call(rax);
+				test(eax, eax);
+				jz(skip);
 
-				cmp(al, util::to_underlying(RE::FormType::Ammo));
-				jnz(skip);
+				mov(edi, eax);
 
-				lea(rcx, ptr[rbx + 0xF8]);  // cast TESAmmo to BGSKeywordForm
-				mov(rax, ptr[rcx]);         // get vftable
-				mov(rdx, r13);              // arg2 = MagicDisallowEnchanting
-				call(ptr[rax + 0x20]);      // HasKeyword
-				test(al, al);
-				jnz(skip);
-				mov(edi, FilterFlag::EnchantAmmo);
-
-				// add the entry to the list
 				jmp(ptr[rip]);
-				dq(hook.address() + 0x94);
+				dq(hook.address() + 0xDD);
 
-				// skip the entry
 				L(skip);
 				jmp(ptr[rip]);
-				dq(hook.address() + 0x18B);
-
-				// entry is a soul gem
-				L(soulGem);
-				jmp(ptr[rip]);
-				dq(hook.address() + 0x6);
+				dq(hook.address() + 0x1D4);
 			}
 		};
 
 		Patch patch{};
+		patch.ready();
 
-		auto& trampoline = SKSE::GetTrampoline();
-		trampoline.write_branch<6>(hook.address(), trampoline.allocate(patch));
-	}
+		assert(patch.getSize() <= 0xDD);
 
-	void FilterFlags::DisenchantEntryPatch()
-	{
-		static const auto hook = REL::Relocation<std::uintptr_t>(
-			RE::Offset::CraftingSubMenus::EnchantConstructMenu::PopulateEntryList,
-			0x23C);
-
-		if (!REL::make_pattern<"B8 08 00 00 00">().match(hook.address())) {
-			util::report_and_fail("Failed to install hook"sv);
-		}
-
-		struct Patch : Xbyak::CodeGenerator
-		{
-			Patch()
-			{
-				Xbyak::Label disenchantAmmo;
-				Xbyak::Label retn;
-
-				// cmp edi, FilterFlag::EnchantArmor
-				jnz(disenchantAmmo);
-				mov(edi, FilterFlag::DisenchantArmor);
-				jmp(retn);
-
-				L(disenchantAmmo);
-				cmp(edi, FilterFlag::EnchantAmmo);
-				mov(eax, FilterFlag::DisenchantAmmo);
-				cmovz(edi, eax);
-
-				L(retn);
-				jmp(ptr[rip]);
-				dq(hook.address() + 0x8);
-			}
-		};
-
-		Patch patch{};
-
-		auto& trampoline = SKSE::GetTrampoline();
-		trampoline.write_branch<5>(hook.address(), trampoline.allocate(patch));
+		REL::safe_fill(hook.address(), REL::NOP, 0xDD);
+		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
 	}
 
 	void FilterFlags::EffectEntryPatch()
@@ -233,11 +180,8 @@ namespace Hooks
 		{
 			Patch()
 			{
-				sub(rsp, 0x30);
 				mov(rax, util::function_ptr(&Ext::EnchantConstructMenu::CanSelectEntry));
-				call(rax);
-				add(rsp, 0x30);
-				ret();
+				jmp(rax);
 			}
 		};
 
@@ -351,6 +295,70 @@ namespace Hooks
 		}
 
 		return _PushBack(a_arg1, a_entry);
+	}
+
+	std::uint32_t FilterFlags::GetFilterFlag(RE::InventoryEntryData* a_entry)
+	{
+		const auto object = a_entry->GetObject();
+
+		if (a_entry->IsQuestObject() || !object || !object->GetName() || !object->GetPlayable())
+			return FilterFlag::None;
+
+		const auto defaultObjects = RE::BGSDefaultObjectManager::GetSingleton();
+		const auto disallowEnchanting = defaultObjects->GetObject<RE::BGSKeyword>(
+			RE::DEFAULT_OBJECT::kKeywordDisallowEnchanting);
+
+		if (const auto armor = object->As<RE::TESObjectARMO>()) {
+			if (disallowEnchanting && armor->HasKeyword(disallowEnchanting)) {
+				return FilterFlag::None;
+			}
+			else if (!a_entry->IsEnchanted()) {
+				return FilterFlag::EnchantArmor;
+			}
+			else {
+				return FilterFlag::DisenchantArmor;
+			}
+		}
+		else if (const auto weapon = object->As<RE::TESObjectWEAP>()) {
+			static const auto unarmedWeapon =
+				REL::Relocation<RE::TESObjectWEAP**>{ RE::Offset::UnarmedWeapon };
+
+			if (weapon->weaponData.animationType == RE::WEAPON_TYPE::kStaff ||
+				disallowEnchanting && weapon->HasKeyword(disallowEnchanting) ||
+				weapon == *unarmedWeapon.get() ||
+				(weapon->weaponData.flags.all(RE::TESObjectWEAP::Data::Flag::kNonPlayable))) {
+
+				return FilterFlag::None;
+			}
+			else if (!a_entry->IsEnchanted()) {
+				return FilterFlag::EnchantWeapon;
+			}
+			else {
+				return FilterFlag::DisenchantWeapon;
+			}
+		}
+		else if (const auto ammo = object->As<RE::TESAmmo>()) {
+			if (disallowEnchanting && ammo->HasKeyword(disallowEnchanting)) {
+				return FilterFlag::None;
+			}
+			else if (!a_entry->IsEnchanted() && !Ext::TESAmmo::GetEnchantment(ammo)) {
+				return FilterFlag::EnchantAmmo;
+			}
+			else {
+				return FilterFlag::DisenchantAmmo;
+			}
+		}
+		else if (const auto soulGem = object->As<RE::TESSoulGem>()) {
+			if (a_entry->GetSoulLevel() == RE::SOUL_LEVEL::kNone) {
+				return FilterFlag::None;
+			}
+			else {
+				return FilterFlag::SoulGem;
+			}
+		}
+		else {
+			return FilterFlag::None;
+		}
 	}
 
 	std::uint32_t FilterFlags::GetEnabledFilters(Menu::Selections* a_selected)

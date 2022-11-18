@@ -17,10 +17,8 @@ namespace Hooks
 	private:
 		// Set up category filters in EnchantConstructMenu
 		static void ConstructorPatch();
-		// Allow Ammo forms to be added to entry list and assign EnchantAmmo flag
-		static void EnchantEntryPatch();
-		// Assign DisenchantAmmo flag for enchanted ammo
-		static void DisenchantEntryPatch();
+		// Allow Ammo forms to be added to entry list and assign flags
+		static void ItemEntryPatch();
 		// Assign EffectAmmo flag for base ammo enchantments
 		static void EffectEntryPatch();
 		// Recognize DisenchantAmmo for learning enchantments
@@ -39,6 +37,8 @@ namespace Hooks
 		static void ItemPreviewPatch();
 
 		static void PushBack(void* a_arg1, Menu::EnchantmentEntry* a_entry);
+
+		static std::uint32_t GetFilterFlag(RE::InventoryEntryData* a_entry);
 
 		static std::uint32_t GetEnabledFilters(Menu::Selections* a_selected);
 
