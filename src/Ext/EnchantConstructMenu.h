@@ -40,5 +40,7 @@ namespace Ext
 		};
 
 		bool CanSelectEntry(Menu* a_menu, std::uint32_t a_entry, bool a_showNotification);
+
+		std::uint16_t GetAmmoEnchantQuantity(Menu* a_menu);
 	};
 }

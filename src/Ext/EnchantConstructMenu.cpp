@@ -120,4 +120,12 @@ namespace Ext
 			return true;
 		}
 	}
+
+	std::uint16_t EnchantConstructMenu::GetAmmoEnchantQuantity(Menu* a_menu)
+	{
+		const std::int32_t grandSoulArrowsCrafted = 24;
+
+		return static_cast<std::uint16_t>(
+			a_menu->createEffectFunctor.soulGemRatio * grandSoulArrowsCrafted);
+	}
 }
