@@ -23,15 +23,15 @@ namespace Hooks
 		static void DisenchantEntryPatch();
 		// Assign EffectAmmo flag for base ammo enchantments
 		static void EffectEntryPatch();
-		// Learn effect when selecting DisenchantAmmo entries
+		// Recognize DisenchantAmmo for learning enchantments
 		static void DisenchantSelectPatch();
 		// Enable DisenchantAmmo entries
 		static void DisenchantEnablePatch();
-		//
+		// Learn effect when disenchanting from DisenchantAmmo entries
 		static void DisenchantLearnPatch();
 		// Correct button text for DisenchantAmmo
 		static void ButtonTextPatch();
-		//
+		// Handle Ammo flags when determining whether entries are selectable
 		static void CanSelectEntryPatch();
 		// Handle Ammo flags when selecting an entry
 		static void SelectEntryPatch();
