@@ -7,6 +7,7 @@ namespace Hooks
 	class SkyUI
 	{
 	public:
+		using Menu = RE::CraftingSubMenus::EnchantConstructMenu;
 		using FilterFlag = Ext::EnchantConstructMenu::FilterFlag;
 
 		SkyUI() = delete;
@@ -20,7 +21,7 @@ namespace Hooks
 		static void DisenchantDataPatch();
 
 		static void SetDisenchantItemData(
-			RE::CraftingSubMenus::EnchantConstructMenu::ItemChangeEntry* a_entry,
+			Menu::ItemChangeEntry* a_entry,
 			RE::GFxValue* a_dataContainer);
 	};
 }

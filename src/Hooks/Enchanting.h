@@ -5,6 +5,8 @@ namespace Hooks
 	class Enchanting
 	{
 	public:
+		using Menu = RE::CraftingSubMenus::EnchantConstructMenu;
+
 		Enchanting() = delete;
 
 		static void Install();

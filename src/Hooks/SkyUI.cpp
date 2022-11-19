@@ -41,7 +41,7 @@ namespace Hooks
 				call(rax);
 
 				lea(r8, ptr[rbp - 0x29]);
-				mov(rdx, ptr[rsi + 0x78]);
+				mov(rdx, ptr[rsi + offsetof(Menu, entryList) + 0x10]);  // entryList._value
 
 				jmp(ptr[rip]);
 				dq(hook.address() + 0x8);
@@ -58,7 +58,7 @@ namespace Hooks
 	}
 
 	void SkyUI::SetDisenchantItemData(
-		RE::CraftingSubMenus::EnchantConstructMenu::ItemChangeEntry* a_entry,
+		Menu::ItemChangeEntry* a_entry,
 		RE::GFxValue* a_dataContainer)
 	{
 		if (a_entry->filterFlag.underlying() != FilterFlag::DisenchantAmmo)

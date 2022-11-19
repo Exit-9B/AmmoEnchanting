@@ -43,8 +43,6 @@ namespace Hooks
 		{
 			Patch()
 			{
-				using Menu = RE::CraftingSubMenus::EnchantConstructMenu;
-
 				lea(r12, ptr[r14 + offsetof(Menu, filterDisenchant)]);
 				mov(dword[r12], FilterFlag::Disenchant);
 				mov(ptr[r14 + offsetof(Menu, filterDivider)], esi);
@@ -353,9 +351,10 @@ namespace Hooks
 		{
 			Patch()
 			{
-				mov(rax, ptr[rsi + 0x180]);
+				mov(rax,
+					ptr[rsi + offsetof(Menu, selected) + offsetof(Menu::Selections, effects)]);
 				mov(rcx, ptr[rax]);
-				mov(ecx, dword[rcx + 0xC]);
+				mov(ecx, dword[rcx + offsetof(Menu::CategoryListEntry, filterFlag)]);
 				mov(rax, util::function_ptr(&FilterFlags::GetFormTypeFromEffectFlag));
 				call(rax);
 				mov(r14d, eax);

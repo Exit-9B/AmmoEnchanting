@@ -45,7 +45,9 @@ namespace Hooks
 				jz(retn);
 				nop(0x2);
 				// hook + 0x19
-				mov(ptr[rsi + 0x1E0], rax);  // createEffectFunctor.createdEnchantment
+				mov(ptr[rsi + offsetof(Menu, createEffectFunctor) +
+						offsetof(Menu::CreateEffectFunctor, createdEnchantment)],
+					rax);
 				// hook + 0x20
 				L(retn);
 			}
