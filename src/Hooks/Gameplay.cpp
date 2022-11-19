@@ -19,11 +19,11 @@ namespace Hooks
 			0x749);
 
 		// skipping the last 4 bytes to support both 1.6.353 and 1.6.640
-		if (!REL::make_pattern<"48 8B 47 20 "
-							   "48 8B 88 B0 00 00 00 "
+		if (!REL::make_pattern<"48 8B 47 ?? "
+							   "48 8B 88 ?? ?? ?? ?? "
 							   "48 89 8B">()
 				 .match(hook.address())) {
-			util::report_and_fail("Failed to install projectile launch patch"sv);
+			util::report_and_fail("Gameplay::LaunchProjectilePatch failed to install"sv);
 		}
 
 		struct Patch : Xbyak::CodeGenerator

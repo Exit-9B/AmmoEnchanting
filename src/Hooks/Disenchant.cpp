@@ -17,6 +17,10 @@ namespace Hooks
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::DisenchantItem,
 			0x52);
 
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("Disenchant::GetEnchantmentPatch failed to install"sv);
+		}
+
 		auto& trampoline = SKSE::GetTrampoline();
 		_GetEnchantment = trampoline.write_call<5>(
 			hook.address(),

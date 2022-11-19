@@ -28,6 +28,12 @@ namespace Hooks
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::Update,
 			0x299);
 
+		if (!REL::make_pattern<"41 83 FE 29">().match(hook1.address()) ||
+			!REL::make_pattern<"41 83 FE 1A">().match(hook2.address())) {
+
+			util::report_and_fail("Enchanting::ItemPreviewPatch failed to install"sv);
+		}
+
 		// jmp from 0x208 to 0x299
 		std::array<std::uint8_t, 5> patch1{ 0xE9, 0x8C, 0x00, 0x00, 0x00 };
 
@@ -69,6 +75,10 @@ namespace Hooks
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::CraftItem,
 			0x98);
 
+		if (!REL::make_pattern<"8B 43">().match(hook.address())) {
+			util::report_and_fail("Enchanting::CraftItemPatch failed to install"sv);
+		}
+
 		struct Patch : Xbyak::CodeGenerator
 		{
 			Patch()
@@ -94,6 +104,10 @@ namespace Hooks
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::ProcessUserEvent,
 			0x1B6);
 
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("Enchanting::EnchantConfirmPatch failed to install"sv);
+		}
+
 		auto& trampoline = SKSE::GetTrampoline();
 		_SetStr = trampoline.write_call<5>(hook.address(), &Enchanting::SetConfirmText);
 	}
@@ -112,6 +126,13 @@ namespace Hooks
 			RE::Offset::InventoryChanges::EnchantObject,
 			0x14F);
 
+		if (!REL::make_pattern<"E8">().match(hook1.address()) ||
+			!REL::make_pattern<"E8">().match(hook2.address()) ||
+			!REL::make_pattern<"E8">().match(hook3.address())) {
+
+			util::report_and_fail("Enchanting::AmmoQuantityPatch failed to install"sv);
+		}
+
 		auto& trampoline = SKSE::GetTrampoline();
 
 		_GetCount = trampoline.write_call<5>(hook1.address(), &Enchanting::GetCount);
@@ -120,9 +141,7 @@ namespace Hooks
 			hook2.address(),
 			&Enchanting::SetBaseItemCount);
 
-		_SetEnchantment = trampoline.write_call<5>(
-			hook3.address(),
-			&Enchanting::SetExtraData);
+		_SetEnchantment = trampoline.write_call<5>(hook3.address(), &Enchanting::SetExtraData);
 	}
 
 	void Enchanting::InventoryNotificationPatch()
@@ -130,6 +149,10 @@ namespace Hooks
 		static const auto hook = REL::Relocation<std::uintptr_t>(
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::CraftItem,
 			0x2A3);
+
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("Enchanting::InventoryNotificationPatch failed to install"sv);
+		}
 
 		auto& trampoline = SKSE::GetTrampoline();
 
@@ -177,7 +200,8 @@ namespace Hooks
 				fmt::format(
 					"Enchantment charges: {}. You only have {} of the selected item."sv,
 					creatingCount,
-					availableCount).data());
+					availableCount)
+					.data());
 		}
 		else {
 			_SetStr(a_str, a_sEnchantItem);

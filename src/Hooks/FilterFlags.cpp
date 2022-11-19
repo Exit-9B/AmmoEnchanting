@@ -36,7 +36,7 @@ namespace Hooks
 			0x1B3);
 
 		if (!REL::make_pattern<"4D 8D A6">().match(hook.address())) {
-			util::report_and_fail("Failed to install filter flag patch"sv);
+			util::report_and_fail("FilterFlags::ConstructorPatch failed to install"sv);
 		}
 
 		struct Patch : Xbyak::CodeGenerator
@@ -65,6 +65,10 @@ namespace Hooks
 		static const auto hook = REL::Relocation<std::uintptr_t>(
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::PopulateEntryList,
 			0x140);
+
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("FilterFlags::ItemEntryPatch failed to install"sv);
+		}
 
 		struct Patch : Xbyak::CodeGenerator
 		{
@@ -103,6 +107,10 @@ namespace Hooks
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::AddEnchantmentIfKnown,
 			0x243);
 
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("FilterFlags::EffectEntryPatch failed to install"sv);
+		}
+
 		auto& trampoline = SKSE::GetTrampoline();
 		_PushBack = trampoline.write_call<5>(hook.address(), &FilterFlags::PushBack);
 	}
@@ -113,8 +121,8 @@ namespace Hooks
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::SelectEntry,
 			0x6E);
 
-		if (!REL::make_pattern<"F6 41 0C 0A">().match(hook.address())) {
-			util::report_and_fail("Failed to install"sv);
+		if (!REL::make_pattern<"F6 41 ?? 0A">().match(hook.address())) {
+			util::report_and_fail("FilterFlags::DisenchantSelectPatch failed to install"sv);
 		}
 
 		static_assert(FilterFlag::Disenchant <= 0xFF);
@@ -130,7 +138,7 @@ namespace Hooks
 			0x4E);
 
 		if (!REL::make_pattern<"F6 C1 0A">().match(hook.address())) {
-			util::report_and_fail("Failed to install"sv);
+			util::report_and_fail("FilterFlags::DisenchantEnablePatch failed to install"sv);
 		}
 
 		static_assert(FilterFlag::Disenchant <= 0xFF);
@@ -145,8 +153,8 @@ namespace Hooks
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::DisenchantItem,
 			0x41);
 
-		if (!REL::make_pattern<"F6 41 0C 0A">().match(hook.address())) {
-			util::report_and_fail("Failed to install"sv);
+		if (!REL::make_pattern<"F6 41 ?? 0A">().match(hook.address())) {
+			util::report_and_fail("FilterFlags::DisenchantLearnPatch failed to install"sv);
 		}
 
 		static_assert(FilterFlag::Disenchant <= 0xFF);
@@ -161,8 +169,8 @@ namespace Hooks
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::UpdateInterface,
 			0x11D);
 
-		if (!REL::make_pattern<"F6 41 0C 0A">().match(hook.address())) {
-			util::report_and_fail("Failed to install"sv);
+		if (!REL::make_pattern<"F6 41 ?? 0A">().match(hook.address())) {
+			util::report_and_fail("FilterFlags::ButtonTextPatch failed to install"sv);
 		}
 
 		static_assert(FilterFlag::Disenchant <= 0xFF);
@@ -201,6 +209,12 @@ namespace Hooks
 		static const auto hook2 = REL::Relocation<std::uintptr_t>(
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::Selections::SelectEntry,
 			0x27F);
+
+		if (!REL::make_pattern<"41 83 E8 01">().match(hook1.address()) ||
+			!REL::make_pattern<"48 8B 16">().match(hook2.address())) {
+
+			util::report_and_fail("FilterFlags::SelectEntryPatch failed to install"sv);
+		}
 
 		struct Patch1 : Xbyak::CodeGenerator
 		{
@@ -262,6 +276,10 @@ namespace Hooks
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::CreateEffectFunctor::Invoke,
 			0x14F);
 
+		if (!REL::make_pattern<"83 F9 10">().match(hook.address())) {
+			util::report_and_fail("FilterFlags::ComputeMagnitudePatch failed to install"sv);
+		}
+
 		struct Patch : Xbyak::CodeGenerator
 		{
 			Patch()
@@ -300,6 +318,14 @@ namespace Hooks
 		static const auto hook4 = REL::Relocation<std::uintptr_t>(
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::CalculateCharge,
 			0x47);
+
+		if (!REL::make_pattern<"83 F8 10">().match(hook1.address()) ||
+			!REL::make_pattern<"41 83 7D ?? 10">().match(hook2.address()) ||
+			!REL::make_pattern<"83 79 ?? 10">().match(hook3.address()) ||
+			!REL::make_pattern<"83 7F ?? 10">().match(hook4.address())) {
+
+			util::report_and_fail("FilterFlags::ChargeSliderPatch failed to install"sv);
+		}
 
 		struct Patch1 : Xbyak::CodeGenerator
 		{
@@ -346,6 +372,10 @@ namespace Hooks
 		static const auto hook = REL::Relocation<std::uintptr_t>(
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::Update,
 			0xAF);
+
+		if (!REL::make_pattern<"48 8B 86">().match(hook.address())) {
+			util::report_and_fail("FilterFlags::ItemPreviewPatch failed to install"sv);
+		}
 
 		struct Patch : Xbyak::CodeGenerator
 		{

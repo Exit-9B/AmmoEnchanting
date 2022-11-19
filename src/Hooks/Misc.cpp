@@ -16,6 +16,10 @@ namespace Hooks
 			RE::Offset::TESForm::GetEnchantment,
 			0x23);
 
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("Misc::GetEnchantmentPatch failed to install"sv);
+		}
+
 		auto& trampoline = SKSE::GetTrampoline();
 		_AsEnchantableForm = trampoline.write_call<5>(
 			hook.address(),
