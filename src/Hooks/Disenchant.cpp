@@ -36,8 +36,13 @@ namespace Hooks
 			const auto enchantment = explosion ? explosion->formEnchanting : nullptr;
 
 			if (enchantment) {
+				auto baseEnchantment = enchantment;
+				if (enchantment->data.baseEnchantment) {
+					baseEnchantment = enchantment->data.baseEnchantment;
+				}
+
 				const auto manager = Data::CreatedObjectManager::GetSingleton();
-				manager->SetBaseExplosion(enchantment, explosion);
+				manager->SetBaseExplosion(baseEnchantment, explosion);
 			}
 
 			return enchantment;
