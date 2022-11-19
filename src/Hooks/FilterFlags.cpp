@@ -24,6 +24,8 @@ namespace Hooks
 
 		CanSelectEntryPatch();
 		SelectEntryPatch();
+		ComputeMagnitudePatch();
+		ChargeSliderPatch();
 		ItemPreviewPatch();
 	}
 
@@ -219,7 +221,7 @@ namespace Hooks
 				db(0x0F);  // jnz hook + 0x1E7
 				db(0x85);
 				dd(0x1C3);
-				nop(6);
+				nop(0x6);
 			}
 		};
 
@@ -254,6 +256,91 @@ namespace Hooks
 
 		REL::safe_write(hook1.address(), patch1.getCode(), patch1.getSize());
 		REL::safe_write(hook2.address(), patch2.getCode(), patch2.getSize());
+	}
+
+	void FilterFlags::ComputeMagnitudePatch()
+	{
+		static const auto hook = REL::Relocation<std::uintptr_t>(
+			RE::Offset::CraftingSubMenus::EnchantConstructMenu::CreateEffectFunctor::Invoke,
+			0x14F);
+
+		struct Patch : Xbyak::CodeGenerator
+		{
+			Patch()
+			{
+				// we shouldn't need an explicit check for EffectArmor
+				test(ecx, FilterFlag::EffectWeapon | FilterFlag::EffectAmmo);
+				db(0x75);  // jnz hook + 0x1D
+				db(0x15);
+				nop(0x2);
+			}
+		};
+
+		Patch patch{};
+		patch.ready();
+
+		assert(patch.getSize() == 0xA);
+
+		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
+	}
+
+	void FilterFlags::ChargeSliderPatch()
+	{
+		static const auto hook1 = REL::Relocation<std::uintptr_t>(
+			RE::Offset::CraftingSubMenus::EnchantConstructMenu::SelectEntry,
+			0x2A6);
+
+		// there seems to be some redundant code here, possibly an inlined function call
+		static const auto hook2 = REL::Relocation<std::uintptr_t>(
+			RE::Offset::CraftingSubMenus::EnchantConstructMenu::SelectEntry,
+			0x380);
+
+		static const auto hook3 = REL::Relocation<std::uintptr_t>(
+			RE::Offset::CraftingSubMenus::EnchantConstructMenu::SliderClose,
+			0x2B);
+
+		static const auto hook4 = REL::Relocation<std::uintptr_t>(
+			RE::Offset::CraftingSubMenus::EnchantConstructMenu::CalculateCharge,
+			0x47);
+
+		struct Patch1 : Xbyak::CodeGenerator
+		{
+			Patch1()
+			{
+				test(
+					eax,
+					~(FilterFlag::EffectWeapon | FilterFlag::EffectAmmo | FilterFlag::SoulGem));
+			}
+		};
+
+		Patch1 patch1{};
+		patch1.ready();
+
+		assert(patch1.getSize() <= 0x8);
+
+		struct Patch2 : Xbyak::CodeGenerator
+		{
+			Patch2()
+			{
+				mov(rbx, r13);
+				test(
+					dword[rbx + offsetof(Menu::CategoryListEntry, filterFlag)],
+					~(FilterFlag::EffectWeapon | FilterFlag::EffectAmmo));
+			}
+		};
+
+		Patch2 patch2{};
+		patch2.ready();
+
+		assert(patch2.getSize() <= 0x23);
+
+		REL::safe_fill(hook1.address(), REL::NOP, 0x8);
+		REL::safe_write(hook1.address(), patch1.getCode(), patch1.getSize());
+		REL::safe_fill(hook2.address(), REL::NOP, 0x23);
+		REL::safe_write(hook2.address(), patch2.getCode(), patch2.getSize());
+		// the flag checks here just get in the way, so nop them
+		REL::safe_fill(hook3.address(), REL::NOP, 0x6);
+		REL::safe_fill(hook4.address(), REL::NOP, 0xA);
 	}
 
 	void FilterFlags::ItemPreviewPatch()

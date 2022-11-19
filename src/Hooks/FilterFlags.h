@@ -33,6 +33,10 @@ namespace Hooks
 		static void CanSelectEntryPatch();
 		// Handle Ammo flags when selecting an entry
 		static void SelectEntryPatch();
+		// Compute initial magnitude without soul gem multiplier
+		static void ComputeMagnitudePatch();
+		// Enable magnitude/charge slider for Ammo
+		static void ChargeSliderPatch();
 		// When selecting an enchantment without an item, identify Ammo form type
 		static void ItemPreviewPatch();
 

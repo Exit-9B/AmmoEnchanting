@@ -43,8 +43,10 @@ namespace Hooks
 				call(rax);
 				test(rax, rax);
 				jz(retn);
-				nop(2);
+				nop(0x2);
+				// hook + 0x19
 				mov(ptr[rsi + 0x1E0], rax);  // createEffectFunctor.createdEnchantment
+				// hook + 0x20
 				L(retn);
 			}
 		};

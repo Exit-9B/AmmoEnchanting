@@ -16,15 +16,22 @@ namespace RE::Offset
 		{
 			inline static constexpr REL::ID Ctor{ 51242 };
 			inline static constexpr REL::ID AddEnchantmentIfKnown{ 51285 };
+			inline static constexpr REL::ID CalculateCharge{ 51338 };
 			inline static constexpr REL::ID CanSelectEntry{ 51461 };
 			inline static constexpr REL::ID CraftItem{ 51355 };
 			inline static constexpr REL::ID DisenchantItem{ 51363 };
 			inline static constexpr REL::ID PopulateEntryList{ 51359 };
 			inline static constexpr REL::ID ProcessUserEvent{ 51379 };
 			inline static constexpr REL::ID SelectEntry{ 51344 };
+			inline static constexpr REL::ID SliderClose{ 51443 };
 			inline static constexpr REL::ID Update{ 51449 };
 			inline static constexpr REL::ID UpdateEnabledEntries{ 51450 };
 			inline static constexpr REL::ID UpdateInterface{ 51459 };
+
+			namespace CreateEffectFunctor
+			{
+				inline static constexpr REL::ID Invoke{ 51283 };
+			}
 
 			namespace Selections
 			{

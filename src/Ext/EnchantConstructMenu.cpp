@@ -123,9 +123,22 @@ namespace Ext
 
 	std::uint16_t EnchantConstructMenu::GetAmmoEnchantQuantity(Menu* a_menu)
 	{
-		const std::int32_t grandSoulArrowsCrafted = 24;
+		float cost = 0.0f;
+		for (auto& enchantment : a_menu->selected.effects) {
+			if (!enchantment || !enchantment->data)
+				continue;
 
-		return static_cast<std::uint16_t>(
-			a_menu->createEffectFunctor.soulGemRatio * grandSoulArrowsCrafted);
+			for (auto& effect : enchantment->data->effects) {
+				cost += effect->cost;
+			}
+		}
+
+		std::uint16_t charges = 1;
+
+		if (cost > 0.0f) {
+			charges = static_cast<std::uint16_t>(a_menu->chargeAmount / cost);
+		}
+
+		return charges > 1 ? charges : 1;
 	}
 }
