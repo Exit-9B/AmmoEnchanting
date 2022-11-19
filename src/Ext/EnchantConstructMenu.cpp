@@ -125,20 +125,42 @@ namespace Ext
 	{
 		float cost = 0.0f;
 		for (auto& enchantment : a_menu->selected.effects) {
-			if (!enchantment || !enchantment->data)
-				continue;
-
-			for (auto& effect : enchantment->data->effects) {
-				cost += effect->cost;
+			float costRatio = 1.0f;
+			if (enchantment->maxMagnitude > 0.0f) {
+				costRatio = enchantment->magnitude / enchantment->maxMagnitude;
 			}
+
+			cost += enchantment->data->CalculateMagickaCost(nullptr) * costRatio;
 		}
 
-		std::uint16_t charges = 1;
+		float enchantingSkill = RE::PlayerCharacter::GetSingleton()->GetActorValue(
+			RE::ActorValue::kEnchanting);
 
-		if (cost > 0.0f) {
-			charges = static_cast<std::uint16_t>(a_menu->chargeAmount / cost);
+		static RE::Setting*
+			fEnchantingSkillCostBase = RE::GameSettingCollection::GetSingleton()->GetSetting(
+				"fEnchantingSkillCostBase");
+		static RE::Setting*
+			fEnchantingSkillCostScale = RE::GameSettingCollection::GetSingleton()->GetSetting(
+				"fEnchantingSkillCostScale");
+		static RE::Setting*
+			fEnchantingCostExponent = RE::GameSettingCollection::GetSingleton()->GetSetting(
+				"fEnchantingCostExponent");
+		static RE::Setting*
+			fEnchantingSkillCostMult = RE::GameSettingCollection::GetSingleton()->GetSetting(
+				"fEnchantingSkillCostMult");
+
+		cost = (1.0f -
+				std::powf(
+					fEnchantingSkillCostBase->GetFloat() * enchantingSkill,
+					fEnchantingSkillCostScale->GetFloat())) *
+			std::powf(cost, fEnchantingCostExponent->GetFloat()) *
+			fEnchantingSkillCostMult->GetFloat();
+
+		if (cost > 0.0f && a_menu->chargeAmount > cost) {
+			return static_cast<std::uint16_t>(a_menu->chargeAmount / cost);
 		}
-
-		return charges > 1 ? charges : 1;
+		else {
+			return 1;
+		}
 	}
 }
