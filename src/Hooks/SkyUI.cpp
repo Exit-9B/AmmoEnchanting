@@ -26,7 +26,7 @@ namespace Hooks
 			0x4A6);
 
 		if (!REL::make_pattern<"4C 8D 45 D7 48 8B 56 78">().match(hook.address())) {
-			logger::critical("SkyUI::DisenchantDataPatch failed to install"sv);
+			logger::error("SkyUI::DisenchantDataPatch failed to install"sv);
 			return;
 		}
 

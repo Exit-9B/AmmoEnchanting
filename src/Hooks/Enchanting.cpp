@@ -105,7 +105,8 @@ namespace Hooks
 			0x1B6);
 
 		if (!REL::make_pattern<"E8">().match(hook.address())) {
-			util::report_and_fail("Enchanting::EnchantConfirmPatch failed to install"sv);
+			logger::error("Enchanting::EnchantConfirmPatch failed to install"sv);
+			return;
 		}
 
 		auto& trampoline = SKSE::GetTrampoline();
@@ -151,7 +152,8 @@ namespace Hooks
 			0x2A3);
 
 		if (!REL::make_pattern<"E8">().match(hook.address())) {
-			util::report_and_fail("Enchanting::InventoryNotificationPatch failed to install"sv);
+			logger::error("Enchanting::InventoryNotificationPatch failed to install"sv);
+			return;
 		}
 
 		auto& trampoline = SKSE::GetTrampoline();
