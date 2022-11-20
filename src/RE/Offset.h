@@ -75,6 +75,11 @@ namespace RE::Offset
 		inline static constexpr REL::ID ShowValueNode{ 19641 };
 	}
 
+	namespace PlayerCharacter
+	{
+		inline static constexpr REL::ID UseAmmo{ 41243 };
+	}
+
 	namespace Projectile
 	{
 		inline static constexpr REL::ID GetSpeed{ 44139 };

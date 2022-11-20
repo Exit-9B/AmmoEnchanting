@@ -5,11 +5,14 @@
 
 #include <xbyak/xbyak.h>
 
+#undef GetObject
+
 namespace Hooks
 {
 	void Gameplay::Install()
 	{
 		LaunchProjectilePatch();
+		UseAmmoPatch();
 	}
 
 	void Gameplay::LaunchProjectilePatch()
@@ -48,6 +51,20 @@ namespace Hooks
 		trampoline.write_branch<6>(hook.address(), trampoline.allocate(patch));
 	}
 
+	void Gameplay::UseAmmoPatch()
+	{
+		static const auto hook = REL::Relocation<std::uintptr_t>(
+			RE::Offset::PlayerCharacter::UseAmmo,
+			0x43);
+
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("Gameplay::UseAmmoPatch failed to install"sv);
+		}
+
+		auto& trampoline = SKSE::GetTrampoline();
+		_UseAmmo = trampoline.write_call<5>(hook.address(), &Gameplay::UseAmmo);
+	}
+
 	RE::BGSExplosion* Gameplay::GetProjectileExplosion(RE::Projectile::LaunchData* a_launchData)
 	{
 		auto explosion = a_launchData->projectile->data.explosionType;
@@ -73,5 +90,49 @@ namespace Hooks
 		}
 
 		return explosion;
+	}
+
+	std::int32_t Gameplay::UseAmmo(RE::PlayerCharacter* a_player, std::int32_t a_shotCount)
+	{
+		const auto& actorProcess = a_player->currentProcess;
+		const auto middleHigh = actorProcess ? actorProcess->middleHigh : nullptr;
+		const auto bothHands = middleHigh ? middleHigh->bothHands : nullptr;
+
+		if (!bothHands) {
+			return 0;
+		}
+
+		const auto& extraLists = bothHands->extraLists;
+		const auto extraList = extraLists && !extraLists->empty() ? extraLists->front() : nullptr;
+		if (!extraList) {
+			return _UseAmmo(a_player, a_shotCount);
+		}
+
+		const auto equippedWeapon = a_player->GetEquippedObject(false);
+
+		if (!equippedWeapon || equippedWeapon->GetFormType() != RE::FormType::Weapon) {
+			return 0;
+		}
+
+		auto invCount = extraList->GetCount();
+
+		if (a_shotCount < 0) {
+			a_shotCount = middleHigh->unk310;
+		}
+
+		if (a_shotCount > invCount) {
+			a_shotCount = invCount;
+		}
+
+		invCount -= a_shotCount;
+
+		a_player->RemoveItem(
+			bothHands->GetObject(),
+			a_shotCount,
+			RE::ITEM_REMOVE_REASON::kRemove,
+			extraList,
+			nullptr);
+
+		return invCount;
 	}
 }
