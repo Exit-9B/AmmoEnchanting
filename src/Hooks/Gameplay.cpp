@@ -19,13 +19,9 @@ namespace Hooks
 	{
 		static const auto hook = REL::Relocation<std::uintptr_t>(
 			RE::Offset::Projectile::Launch,
-			0x749);
+			0x6FF);
 
-		// skipping the last 4 bytes to support both 1.6.353 and 1.6.640
-		if (!REL::make_pattern<"48 8B 47 ?? "
-							   "48 8B 88 ?? ?? ?? ?? "
-							   "48 89 8B">()
-				 .match(hook.address())) {
+		if (!REL::make_pattern<"48 83 7F">().match(hook.address())) {
 			util::report_and_fail("Gameplay::LaunchProjectilePatch failed to install"sv);
 		}
 
@@ -37,18 +33,15 @@ namespace Hooks
 				mov(rax, util::function_ptr(&Gameplay::GetProjectileExplosion));
 				call(rax);
 				mov(ptr[rbx + offsetof(RE::Projectile, explosion)], rax);
-
-				jmp(ptr[rip]);
-				dq(hook.address() + 0x12);
 			}
 		};
 
 		Patch patch{};
 
-		REL::safe_fill(hook.address(), REL::NOP, 0x12);
+		assert(patch.getSize() <= 0x5C);
 
-		auto& trampoline = SKSE::GetTrampoline();
-		trampoline.write_branch<6>(hook.address(), trampoline.allocate(patch));
+		REL::safe_fill(hook.address(), REL::NOP, 0x5C);
+		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
 	}
 
 	void Gameplay::UseAmmoPatch()
@@ -67,6 +60,18 @@ namespace Hooks
 
 	RE::BGSExplosion* Gameplay::GetProjectileExplosion(RE::Projectile::LaunchData* a_launchData)
 	{
+		const auto keywordConditionalExplosion =
+			RE::BGSDefaultObjectManager::GetSingleton()->GetObject<RE::BGSKeyword>(
+				RE::DEFAULT_OBJECTS::kKeywordConditionalExplosion);
+
+		if (a_launchData->sourceAmmo &&
+			a_launchData->sourceAmmo->HasKeyword(keywordConditionalExplosion) &&
+			(!a_launchData->sourceWeapon ||
+			 !a_launchData->sourceWeapon->HasKeyword(keywordConditionalExplosion))) {
+
+			return nullptr;
+		}
+
 		auto explosion = a_launchData->projectile->data.explosionType;
 
 		if (!a_launchData->aggressor || !a_launchData->sourceAmmo)
