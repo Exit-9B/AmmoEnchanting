@@ -28,3 +28,18 @@ SKSEPlugin_Add(
 	PRECOMPILE_HEADERS
 		src/PCH/PCH.h
 )
+
+find_path(SIMPLEINI_INCLUDE_DIRS "ConvertUTF.c")
+
+target_include_directories(
+	${PROJECT_NAME}
+	PRIVATE
+		${SIMPLEINI_INCLUDE_DIRS}
+)
+
+install(
+	FILES
+		"${PROJECT_SOURCE_DIR}/data/${PROJECT_NAME}.ini"
+	DESTINATION
+		"SKSE/Plugins"
+)

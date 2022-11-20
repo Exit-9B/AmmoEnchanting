@@ -26,7 +26,7 @@ namespace Hooks
 			RE::TESObject* a_object,
 			RE::ExtraDataList* a_extraList,
 			RE::MagicItem* a_magicItem,
-			float a_temperValue);
+			float a_baseValue);
 
 		inline static REL::Relocation<decltype(&AsEnchantableForm)> _AsEnchantableForm;
 	};

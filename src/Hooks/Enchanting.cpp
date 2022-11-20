@@ -4,6 +4,7 @@
 #include "Ext/EnchantConstructMenu.h"
 #include "Ext/ExtraDataList.h"
 #include "RE/Offset.h"
+#include "Settings/INISettings.h"
 
 #include <xbyak/xbyak.h>
 
@@ -288,7 +289,7 @@ namespace Hooks
 		_ApplyPerkEntries(a_entryPoint, a_perkOwner, a_enchantment, a_item, a_value);
 
 		if (Data::CreatedObjectManager::GetSingleton()->IsBaseAmmoEnchantment(a_enchantment)) {
-			a_value *= 0.1f;
+			a_value *= Settings::INISettings::GetSingleton()->fAmmoChargeMult;
 		}
 	}
 }

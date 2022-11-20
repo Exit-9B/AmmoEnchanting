@@ -2,6 +2,7 @@
 
 #include "Data/CreatedObjectManager.h"
 #include "RE/Offset.h"
+#include "Settings/INISettings.h"
 
 #include <xbyak/xbyak.h>
 
@@ -83,9 +84,10 @@ namespace Hooks
 		float a_baseValue)
 	{
 		if (a_object->GetFormType() == RE::FormType::Ammo) {
-			auto cost = a_magicItem->CalculateTotalGoldValue();
+			const auto cost = a_magicItem->CalculateTotalGoldValue();
+			const auto effectCostMult = Settings::INISettings::GetSingleton()->fAmmoEffectCostMult;
 
-			return a_baseValue + 2.0f * cost;
+			return a_baseValue + effectCostMult * cost;
 		}
 		else {
 			std::uint16_t charge = 0;

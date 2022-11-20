@@ -4,6 +4,7 @@
 #include "Hooks/Gameplay.h"
 #include "Hooks/Misc.h"
 #include "Hooks/SkyUI.h"
+#include "Settings/INISettings.h"
 
 namespace
 {
@@ -63,6 +64,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	Hooks::Disenchant::Install();
 	Hooks::Gameplay::Install();
 	Hooks::SkyUI::Install();
+
+	Settings::INISettings::GetSingleton()->LoadSettings();
 
 	return true;
 }
