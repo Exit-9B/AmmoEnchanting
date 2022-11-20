@@ -1,17 +1,20 @@
 #include "Misc.h"
 
+#include "Data/CreatedObjectManager.h"
 #include "RE/Offset.h"
+
+#include <xbyak/xbyak.h>
 
 namespace Hooks
 {
 	void Misc::Install()
 	{
 		GetEnchantmentPatch();
+		GoldValuePatch();
 	}
 
 	void Misc::GetEnchantmentPatch()
 	{
-		// TODO: Scale gold cost of enchanted ammo
 		static const auto hook = REL::Relocation<std::uintptr_t>(
 			RE::Offset::TESForm::GetEnchantment,
 			0x23);
@@ -21,9 +24,39 @@ namespace Hooks
 		}
 
 		auto& trampoline = SKSE::GetTrampoline();
-		_AsEnchantableForm = trampoline.write_call<5>(
-			hook.address(),
-			&Misc::AsEnchantableForm);
+		_AsEnchantableForm = trampoline.write_call<5>(hook.address(), &Misc::AsEnchantableForm);
+	}
+
+	void Misc::GoldValuePatch()
+	{
+		static const auto hook = REL::Relocation<std::uintptr_t>(
+			RE::Offset::InventoryEntryData::GetValue,
+			0x11D);
+
+		if (!REL::make_pattern<"48 8B D7 49 8B CE">().match(hook.address())) {
+			util::report_and_fail("Misc::GoldValuePatch failed to install"sv);
+		}
+
+		struct Patch : Xbyak::CodeGenerator
+		{
+			Patch()
+			{
+				movaps(xmm3, xmm0);
+				mov(r8, rsi);
+				mov(rdx, rdi);
+				mov(rcx, r14);
+				mov(rax, util::function_ptr(&Misc::CalculateCost));
+				call(rax);
+			}
+		};
+
+		Patch patch{};
+		patch.ready();
+
+		assert(patch.getSize() <= 0x31);
+
+		REL::safe_fill(hook.address(), REL::NOP, 0x31);
+		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
 	}
 
 	RE::TESEnchantableForm* Misc::AsEnchantableForm(
@@ -41,5 +74,47 @@ namespace Hooks
 		}
 
 		return _AsEnchantableForm(inptr, a_vfDelta, a_srcType, a_targetType, a_isReference);
+	}
+
+	float Misc::CalculateCost(
+		RE::TESObject* a_object,
+		RE::ExtraDataList* a_extraList,
+		RE::MagicItem* a_magicItem,
+		float a_baseValue)
+	{
+		if (a_object->GetFormType() == RE::FormType::Ammo) {
+			auto cost = a_magicItem->CalculateTotalGoldValue();
+
+			return a_baseValue + 2.0f * cost;
+		}
+		else {
+			std::uint16_t charge = 0;
+			if (const auto enchantableForm = skyrim_cast<RE::TESEnchantableForm*>(a_object);
+				enchantableForm && enchantableForm->amountofEnchantment != 0) {
+
+				charge = enchantableForm->amountofEnchantment;
+			}
+			else if (a_extraList) {
+				if (const auto exEnch = a_extraList->GetByType<RE::ExtraEnchantment>()) {
+					charge = exEnch->charge;
+				}
+			}
+
+			auto cost = a_magicItem->CalculateTotalGoldValue();
+
+			static const auto fEnchantmentPointsMult =
+				RE::GameSettingCollection::GetSingleton()->GetSetting("fEnchantmentPointsMult");
+
+			static const auto fEnchantmentEffectPointsMult =
+				RE::GameSettingCollection::GetSingleton()
+				->GetSetting("fEnchantmentEffectPointsMult");
+
+			if (cost != 0.0f) {
+				cost = a_baseValue + fEnchantmentPointsMult->GetFloat() * charge +
+					fEnchantmentEffectPointsMult->GetFloat() * cost;
+			}
+
+			return cost;
+		}
 	}
 }
