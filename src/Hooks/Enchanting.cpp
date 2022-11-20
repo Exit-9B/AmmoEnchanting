@@ -16,6 +16,7 @@ namespace Hooks
 		EnchantConfirmPatch();
 		AmmoQuantityPatch();
 		InventoryNotificationPatch();
+		EnchantmentChargePatch();
 	}
 
 	void Enchanting::ItemPreviewPatch()
@@ -163,6 +164,23 @@ namespace Hooks
 			&Enchanting::InventoryNotification);
 	}
 
+	void Enchanting::EnchantmentChargePatch()
+	{
+		static const auto hook = REL::Relocation<std::uintptr_t>(
+			RE::Offset::CraftingSubMenus::EnchantConstructMenu::Update,
+			0x174);
+
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("Enchanting::EnchantmentChargePatch failed to install"sv);
+		}
+
+		auto& trampoline = SKSE::GetTrampoline();
+
+		_ApplyPerkEntries = trampoline.write_call<5>(
+			hook.address(),
+			&Enchanting::ApplyPerkEntries);
+	}
+
 	RE::EnchantmentItem* Enchanting::CreateEnchantment(
 		RE::FormType a_formType,
 		RE::CraftingSubMenus::EnchantConstructMenu* a_menu)
@@ -256,5 +274,21 @@ namespace Hooks
 		}
 
 		_InventoryNotification(a_item, creatingCount, a_itemAdded, a_playSound, name);
+	}
+
+	void Enchanting::ApplyPerkEntries(
+		RE::BGSEntryPoint::ENTRY_POINT a_entryPoint,
+		RE::Actor* a_perkOwner,
+		RE::EnchantmentItem* a_enchantment,
+		RE::TESForm* a_item,
+		float& a_value)
+	{
+		assert(a_entryPoint == RE::BGSEntryPoint::ENTRY_POINT::kModSoulGemEnchanting);
+
+		_ApplyPerkEntries(a_entryPoint, a_perkOwner, a_enchantment, a_item, a_value);
+
+		if (Data::CreatedObjectManager::GetSingleton()->IsBaseAmmoEnchantment(a_enchantment)) {
+			a_value *= 0.1f;
+		}
 	}
 }

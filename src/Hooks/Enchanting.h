@@ -22,6 +22,8 @@ namespace Hooks
 		static void AmmoQuantityPatch();
 		// Show multiple items being added
 		static void InventoryNotificationPatch();
+		// Modify enchantment charges
+		static void EnchantmentChargePatch();
 
 		static RE::EnchantmentItem* CreateEnchantment(
 			RE::FormType a_formType,
@@ -46,6 +48,13 @@ namespace Hooks
 			bool a_playSound,
 			const char* a_name);
 
+		static void ApplyPerkEntries(
+			RE::BGSEntryPoint::ENTRY_POINT a_entryPoint,
+			RE::Actor* a_perkOwner,
+			RE::EnchantmentItem* a_enchantment,
+			RE::TESForm* a_item,
+			float& a_value);
+
 		inline static const char* customName = nullptr;
 		inline static std::uint16_t availableCount = 0;
 		inline static std::uint16_t creatingCount = 1;
@@ -55,5 +64,6 @@ namespace Hooks
 		inline static REL::Relocation<decltype(&SetBaseItemCount)> _SetBaseItemCount;
 		inline static REL::Relocation<decltype(&SetExtraData)> _SetEnchantment;
 		inline static REL::Relocation<decltype(&InventoryNotification)> _InventoryNotification;
+		inline static REL::Relocation<decltype(&ApplyPerkEntries)> _ApplyPerkEntries;
 	};
 }
