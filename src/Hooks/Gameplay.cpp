@@ -12,6 +12,7 @@ namespace Hooks
 	void Gameplay::Install()
 	{
 		LaunchProjectilePatch();
+		HUDAmmoPatch();
 		UseAmmoPatch();
 	}
 
@@ -42,6 +43,18 @@ namespace Hooks
 
 		REL::safe_fill(hook.address(), REL::NOP, 0x5C);
 		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
+	}
+
+	void Gameplay::HUDAmmoPatch()
+	{
+		static const auto hook = REL::Relocation<std::uintptr_t>(RE::Offset::ShowHUDAmmo, 0xBF);
+
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("Gameplay::HUDAmmoPatch failed to install"sv);
+		}
+
+		auto& trampoline = SKSE::GetTrampoline();
+		_AddMessage = trampoline.write_call<5>(hook.address(), &Gameplay::AddMessage);
 	}
 
 	void Gameplay::UseAmmoPatch()
@@ -95,6 +108,26 @@ namespace Hooks
 		}
 
 		return explosion;
+	}
+
+	void Gameplay::AddMessage(
+		RE::UIMessageQueue* a_queue,
+		const RE::BSFixedString& a_menuName,
+		RE::UI_MESSAGE_TYPE a_type,
+		RE::AmmoHUDData* a_data)
+	{
+		const auto player = RE::PlayerCharacter::GetSingleton();
+		const auto& actorProcess = player->currentProcess;
+		const auto middleHigh = actorProcess ? actorProcess->middleHigh : nullptr;
+		const auto bothHands = middleHigh ? middleHigh->bothHands : nullptr;
+		const auto extraLists = bothHands ? bothHands->extraLists : nullptr;
+		const auto extraList = extraLists && !extraLists->empty() ? extraLists->front() : nullptr;
+
+		if (extraList) {
+			a_data->count = extraList->GetCount();
+		}
+
+		return _AddMessage(a_queue, a_menuName, a_type, a_data);
 	}
 
 	std::int32_t Gameplay::UseAmmo(RE::PlayerCharacter* a_player, std::int32_t a_shotCount)

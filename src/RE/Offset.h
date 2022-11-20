@@ -102,5 +102,6 @@ namespace RE::Offset
 		inline static constexpr REL::ID GetEnchantment{ 14563 };
 	}
 
+	inline static constexpr REL::ID ShowHUDAmmo{ 51629 };
 	inline static constexpr REL::ID UnarmedWeapon{ 401061 };
 }
