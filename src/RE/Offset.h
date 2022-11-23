@@ -2,6 +2,11 @@
 
 namespace RE::Offset
 {
+	namespace Actor
+	{
+		inline static constexpr REL::ID AddWornItem{ 38004 };
+	}
+
 	namespace BGSCreatedObjectManager
 	{
 		inline static constexpr REL::ID Singleton{ 400320 };

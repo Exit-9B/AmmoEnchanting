@@ -11,6 +11,7 @@ namespace Hooks
 {
 	void Gameplay::Install()
 	{
+		EquipAmmoPatch();
 		LaunchProjectilePatch();
 		HUDAmmoPatch();
 		UseAmmoPatch();
@@ -45,6 +46,37 @@ namespace Hooks
 		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
 	}
 
+	void Gameplay::EquipAmmoPatch()
+	{
+		static const auto hook = REL::Relocation<std::uintptr_t>(
+			RE::Offset::Actor::AddWornItem,
+			0x36A);
+
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("Gameplay::EquipAmmoPatch failed to install"sv);
+		}
+
+		struct Patch : Xbyak::CodeGenerator
+		{
+			Patch()
+			{
+				mov(r9, rdi);
+				mov(r8, r14);
+				mov(rdx, rbx);
+				mov(rax, util::function_ptr(&Gameplay::UnequipAmmoIfDifferent));
+				call(rax);
+			}
+		};
+
+		Patch patch{};
+		patch.ready();
+
+		assert(patch.getSize() <= 0x59);
+
+		REL::safe_fill(hook.address(), REL::NOP, 0x59);
+		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
+	}
+
 	void Gameplay::HUDAmmoPatch()
 	{
 		static const auto hook = REL::Relocation<std::uintptr_t>(RE::Offset::ShowHUDAmmo, 0xBF);
@@ -69,6 +101,35 @@ namespace Hooks
 
 		auto& trampoline = SKSE::GetTrampoline();
 		_UseAmmo = trampoline.write_call<5>(hook.address(), &Gameplay::UseAmmo);
+	}
+
+	void Gameplay::UnequipAmmoIfDifferent(
+		RE::AIProcess* a_process,
+		RE::TESAmmo* a_baseForm,
+		RE::ExtraDataList* a_extraList,
+		RE::Actor* a_actor)
+	{
+		const auto bothHands = a_process->middleHigh ? a_process->middleHigh->bothHands : nullptr;
+		if (!bothHands)
+			return;
+
+		const auto extraList = !bothHands->extraLists->empty()
+			? bothHands->extraLists->front()
+			: nullptr;
+
+		if (bothHands->object != a_baseForm || extraList != a_extraList) {
+			RE::ActorEquipManager::GetSingleton()->UnequipObject(
+				a_actor,
+				bothHands->object,
+				extraList,
+				1,
+				nullptr,
+				false,
+				false,
+				true,
+				false,
+				nullptr);
+		}
 	}
 
 	RE::BGSExplosion* Gameplay::GetProjectileExplosion(RE::Projectile::LaunchData* a_launchData)

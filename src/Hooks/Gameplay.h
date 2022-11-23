@@ -12,6 +12,9 @@ namespace Hooks
 		static void Install();
 
 	private:
+		// Allow equipping ammo with differing extra data
+		static void EquipAmmoPatch();
+
 		// Copy enchantment from ExtraEnchantment to Projectile explosion
 		static void LaunchProjectilePatch();
 
@@ -20,6 +23,12 @@ namespace Hooks
 
 		// Remove correct ammo with ExtraData
 		static void UseAmmoPatch();
+
+		static void UnequipAmmoIfDifferent(
+			RE::AIProcess* a_process,
+			RE::TESAmmo* a_baseForm,
+			RE::ExtraDataList* a_extraList,
+			RE::Actor* a_actor);
 
 		static RE::BGSExplosion* GetProjectileExplosion(RE::Projectile::LaunchData* a_launchData);
 
