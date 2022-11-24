@@ -9,7 +9,7 @@ namespace Data
 	public:
 		static EnchantArtManager* GetSingleton();
 
-		~EnchantArtManager();
+		~EnchantArtManager() = default;
 		EnchantArtManager(const EnchantArtManager&) = delete;
 		EnchantArtManager(EnchantArtManager&&) = delete;
 		EnchantArtManager& operator=(const EnchantArtManager&) = delete;

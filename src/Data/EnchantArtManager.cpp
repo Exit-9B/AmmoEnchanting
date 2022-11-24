@@ -8,19 +8,6 @@ namespace Data
 		return &singleton;
 	}
 
-	EnchantArtManager::~EnchantArtManager()
-	{
-		std::scoped_lock lk{ _mutex };
-
-		for (auto& [handle, controller] : _quiverEffectControllers) {
-			controller->Stop();
-			delete controller;
-			controller = nullptr;
-		}
-
-		_quiverEffectControllers.clear();
-	}
-
 	void EnchantArtManager::UpdateAmmoEnchantment(
 		RE::Actor* a_actor,
 		RE::EnchantmentItem* a_enchantment)
