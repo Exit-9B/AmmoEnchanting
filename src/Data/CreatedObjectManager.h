@@ -13,6 +13,12 @@ namespace Data
 
 		static CreatedObjectManager* GetSingleton();
 
+		~CreatedObjectManager() = default;
+		CreatedObjectManager(const CreatedObjectManager&) = delete;
+		CreatedObjectManager(CreatedObjectManager&&) = delete;
+		CreatedObjectManager& operator=(const CreatedObjectManager&) = delete;
+		CreatedObjectManager& operator=(CreatedObjectManager&&) = delete;
+
 		void SetBaseExplosion(RE::EnchantmentItem* a_enchantment, RE::BGSExplosion* a_explosion);
 
 		RE::EnchantmentItem* CreateAmmoEnchantment(const RE::BSTArray<RE::Effect>& a_effects);
@@ -20,11 +26,6 @@ namespace Data
 		bool IsBaseAmmoEnchantment(RE::EnchantmentItem* a_enchantment) const;
 
 		RE::BGSExplosion* GetExplosion(RE::EnchantmentItem* a_enchantment) const;
-
-		CreatedObjectManager(const CreatedObjectManager&) = delete;
-		CreatedObjectManager(CreatedObjectManager&&) = delete;
-		CreatedObjectManager& operator=(const CreatedObjectManager&) = delete;
-		CreatedObjectManager& operator=(CreatedObjectManager&&) = delete;
 
 	private:
 		CreatedObjectManager() = default;
