@@ -25,11 +25,6 @@ namespace Data
 				delete fx.quiverFXController;
 			}
 
-			if (fx.arrowEffectModel) {
-				RE::BSResource::FreeRequestedModel(fx.arrowEffectModel);
-				delete fx.arrowEffectModel;
-			}
-
 			_fxMap.erase(it);
 		}
 
@@ -48,14 +43,17 @@ namespace Data
 				}
 
 				if (auto& castingArt = baseEffect->data.castingArt) {
+
+					RE::BSResource::ModelID* id = nullptr;
 					auto modelResult = RE::BSResource::RequestModelDirect(
 						baseEffect->data.castingArt->model.c_str(),
-						fx.arrowEffectModel);
+						id);
 
-					if (modelResult != 0) {
-						RE::BSResource::FreeRequestedModel(fx.arrowEffectModel);
-						fx.arrowEffectModel = nullptr;
+					if (modelResult == 0) {
+						fx.arrowEffectModel.reset(Ext::NiAVObject::Clone(id->data.get()));
 					}
+
+					RE::BSResource::FreeRequestedModel(id);
 				}
 			}
 
@@ -70,12 +68,11 @@ namespace Data
 		auto handle = a_actor->GetHandle();
 		if (auto it = _fxMap.find(handle); it != _fxMap.end()) {
 			auto& fx = it->second;
-			if (fx.arrowEffectModel && fx.arrowEffectModel->data) {
-				auto& model = fx.arrowEffectModel->data;
+			if (fx.arrowEffectModel) {
 
 				if (const auto root = GetArrowAttachRoot(a_actor)) {
 
-					const auto clone = Ext::NiAVObject::Clone(model.get());
+					const auto clone = Ext::NiAVObject::Clone(fx.arrowEffectModel.get());
 					Ext::NiAVObject::SetValueNodeHidden(clone, true);
 
 					Ext::TaskQueueInterface::Attach3D(

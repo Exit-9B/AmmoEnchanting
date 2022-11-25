@@ -24,7 +24,7 @@ namespace Data
 		struct EnchantFX
 		{
 			Ext::AmmoEnchantmentController* quiverFXController = nullptr;
-			RE::BSResource::ModelID* arrowEffectModel = nullptr;
+			RE::NiPointer<RE::NiAVObject> arrowEffectModel;
 		};
 
 		EnchantArtManager() = default;
