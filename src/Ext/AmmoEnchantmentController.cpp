@@ -4,19 +4,10 @@ namespace Ext
 {
 	AmmoEnchantmentController::AmmoEnchantmentController(
 		RE::Actor* a_actor,
-		RE::EnchantmentItem* a_enchantment)
+		RE::BGSArtObject* a_enchantArt)
+		: actor{ a_actor },
+		  effectArt{ a_enchantArt }
 	{
-		actor = a_actor;
-
-		const auto costliestEffect = a_enchantment->GetCostliestEffectItem();
-		const auto baseEffect = costliestEffect ? costliestEffect->baseEffect : nullptr;
-
-		if (baseEffect) {
-			effectArt = baseEffect->data.enchantEffectArt;
-		}
-		else {
-			effectArt = nullptr;
-		}
 	}
 
 	RE::TESObjectREFR* AmmoEnchantmentController::GetTargetReference()

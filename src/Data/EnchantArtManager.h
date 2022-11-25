@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Ext/AmmoEnchantmentController.h"
+#include "RE/BSResource.h"
 
 namespace Data
 {
@@ -17,10 +18,20 @@ namespace Data
 
 		void UpdateAmmoEnchantment(RE::Actor* a_actor, RE::EnchantmentItem* a_enchantment);
 
+		void AttachArrow(RE::Actor* a_actor);
+
 	private:
+		struct EnchantFX
+		{
+			Ext::AmmoEnchantmentController* quiverFXController = nullptr;
+			RE::BSResource::ModelID* arrowEffectModel = nullptr;
+		};
+
 		EnchantArtManager() = default;
 
+		static RE::NiAVObject* GetArrowAttachRoot(RE::Actor* a_actor);
+
 		std::mutex _mutex;
-		RE::BSTHashMap<RE::ActorHandle, Ext::AmmoEnchantmentController*> _quiverEffectControllers;
+		RE::BSTHashMap<RE::ActorHandle, EnchantFX> _fxMap;
 	};
 }

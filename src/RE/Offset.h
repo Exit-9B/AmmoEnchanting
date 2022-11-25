@@ -15,6 +15,18 @@ namespace RE::Offset
 		inline static constexpr REL::ID CreateWeaponEnchantment{ 36165 };
 	}
 
+	namespace BSResource
+	{
+		inline static constexpr REL::ID FreeRequestedModel{ 13154 };
+		inline static constexpr REL::ID RequestModelAsync{ 75780 };
+		inline static constexpr REL::ID RequestModelDirect{ 75781 };
+	}
+
+	namespace Character
+	{
+		inline static constexpr REL::ID Vtbl{ 207886 };
+	}
+
 	namespace CraftingSubMenus
 	{
 		namespace EnchantConstructMenu
@@ -75,9 +87,10 @@ namespace RE::Offset
 		inline static constexpr REL::ID UpdateImpl{ 44027 };
 	}
 
-	namespace NiNode
+	namespace NiAVObject
 	{
-		inline static constexpr REL::ID ShowValueNode{ 19641 };
+		inline static constexpr REL::ID Clone{ 70187 };
+		inline static constexpr REL::ID SetValueNodeHidden{ 19641 };
 	}
 
 	namespace PlayerCharacter
@@ -100,6 +113,11 @@ namespace RE::Offset
 	namespace StandardItemData
 	{
 		inline static constexpr REL::ID Init{ 51011 };
+	}
+
+	namespace TaskQueueInterface
+	{
+		inline static constexpr REL::ID Attach3D{ 36897 };
 	}
 
 	namespace TESForm

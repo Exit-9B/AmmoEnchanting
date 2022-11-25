@@ -5,7 +5,7 @@ namespace Ext
 	class AmmoEnchantmentController : public RE::ReferenceEffectController
 	{
 	public:
-		AmmoEnchantmentController(RE::Actor* a_actor, RE::EnchantmentItem* a_enchantment);
+		AmmoEnchantmentController(RE::Actor* a_actor, RE::BGSArtObject* a_enchantArt);
 
 		virtual ~AmmoEnchantmentController() = default;  // 00
 

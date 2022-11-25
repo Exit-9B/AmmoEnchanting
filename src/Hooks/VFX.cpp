@@ -2,6 +2,7 @@
 
 #include "Data/EnchantArtManager.h"
 #include "Ext/TESAmmo.h"
+#include "RE/Offset.h"
 
 namespace Hooks
 {
@@ -9,6 +10,7 @@ namespace Hooks
 	{
 		EquipAmmoPatch();
 		UnequipAmmoPatch();
+		AttachArrowPatch();
 	}
 
 	void VFX::EquipAmmoPatch()
@@ -37,6 +39,21 @@ namespace Hooks
 
 		auto& trampoline = SKSE::GetTrampoline();
 		_DoUnequipObject = trampoline.write_call<5>(hook.address(), &VFX::DoUnequipObject);
+	}
+
+	void VFX::AttachArrowPatch()
+	{
+		static auto Character_vtbl =
+			REL::Relocation<std::uintptr_t>(RE::Offset::Character::Vtbl);
+
+		static auto PlayerCharacter_vtbl =
+			REL::Relocation<std::uintptr_t>(RE::Offset::PlayerCharacter::Vtbl);
+
+		_Character_AttachArrow =
+			Character_vtbl.write_vfunc(205, &VFX::Character_AttachArrow);
+
+		_PlayerCharacter_AttachArrow =
+			PlayerCharacter_vtbl.write_vfunc(205, &VFX::PlayerCharacter_AttachArrow);
 	}
 
 	void VFX::DoEquipObject(
@@ -72,5 +89,21 @@ namespace Hooks
 		if (const auto ammo = a_object->As<RE::TESAmmo>()) {
 			Data::EnchantArtManager::GetSingleton()->UpdateAmmoEnchantment(a_actor, nullptr);
 		}
+	}
+
+	void VFX::Character_AttachArrow(
+		RE::Character* a_character,
+		const RE::BSTSmartPointer<RE::BipedAnim>& a_biped)
+	{
+		_Character_AttachArrow(a_character, a_biped);
+		Data::EnchantArtManager::GetSingleton()->AttachArrow(a_character);
+	}
+
+	void VFX::PlayerCharacter_AttachArrow(
+		RE::PlayerCharacter* a_player,
+		const RE::BSTSmartPointer<RE::BipedAnim>& a_biped)
+	{
+		_PlayerCharacter_AttachArrow(a_player, a_biped);
+		Data::EnchantArtManager::GetSingleton()->AttachArrow(a_player);
 	}
 }
