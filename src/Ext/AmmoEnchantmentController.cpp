@@ -1,5 +1,7 @@
 #include "AmmoEnchantmentController.h"
 
+#include "Ext/TaskQueueInterface.h"
+
 namespace Ext
 {
 	AmmoEnchantmentController::AmmoEnchantmentController(
@@ -36,10 +38,8 @@ namespace Ext
 			attachRoot.reset();
 		}
 
-		if (attachRoot) {
-			if (!attachRoot->parent) {
-				attachRoot.reset();
-			}
+		if (attachRoot && !attachRoot->parent) {
+			attachRoot.reset();
 		}
 
 		if (!attachRoot) {
@@ -48,7 +48,23 @@ namespace Ext
 				const auto node = actor3D ? actor3D->AsNode() : nullptr;
 				const auto quiver = node ? node->GetObjectByName("ArrowQuiver"sv) : nullptr;
 
-				attachRoot.reset(quiver);
+				if (quiver && equippedAmmo->IsBolt()) {
+					const auto adjustNode = RE::NiNode::Create(1);
+					// Hardcoded transform to fit arrow FX to bolt
+					adjustNode->local.translate.y = 1.0f;
+					adjustNode->local.scale = 0.4f;
+
+					Ext::TaskQueueInterface::Attach3D(
+						RE::TaskQueueInterface::GetSingleton(),
+						adjustNode,
+						quiver);
+
+					attachRoot.reset(adjustNode);
+					hasAdjustNode = true;
+				}
+				else {
+					attachRoot.reset(quiver);
+				}
 			}
 		}
 
@@ -113,10 +129,17 @@ namespace Ext
 
 	bool AmmoEnchantmentController::IsReadyForAttach()
 	{
-		if (GetAttachRoot()) {
-			if (const auto node = attachRoot->AsNode()) {
-				return node->children.size();
+		if (const auto root = GetAttachRoot()) {
+			RE::NiNode* node;
+
+			if (hasAdjustNode) {
+				node = root->parent ? root->parent->AsNode() : nullptr;
 			}
+			else {
+				node = root->AsNode();
+			}
+
+			return node && node->children.size() != 0;
 		}
 
 		return false;

@@ -96,11 +96,31 @@ namespace Data
 		if (!weapon)
 			return nullptr;
 
-		bool isCrossbow = weapon->weaponData.animationType == RE::WEAPON_TYPE::kCrossbow;
-		RE::BSFixedString name = isCrossbow ? "NPC R MagicNode [RMag]"sv : "Weapon"sv;
-
 		const auto actor3D = a_actor->Get3D();
 		const auto actorNode = actor3D ? actor3D->AsNode() : nullptr;
-		return actorNode ? actorNode->GetObjectByName(name) : nullptr;
+
+		if (!actorNode)
+			return nullptr;
+
+		const bool isCrossbow = weapon->weaponData.animationType == RE::WEAPON_TYPE::kCrossbow;
+		const RE::BSFixedString name = isCrossbow ? "NPC R MagicNode [RMag]"sv : "Weapon"sv;
+
+		const auto arrowAttach = actorNode->GetObjectByName(name);
+
+		if (isCrossbow) {
+			// Account for offset of bolt placement
+			const auto adjustNode = RE::NiNode::Create(1);
+			adjustNode->local.translate.y = 7.0f;
+
+			Ext::TaskQueueInterface::Attach3D(
+				RE::TaskQueueInterface::GetSingleton(),
+				adjustNode,
+				arrowAttach);
+
+			return adjustNode;
+		}
+		else {
+			return arrowAttach;
+		}
 	}
 }

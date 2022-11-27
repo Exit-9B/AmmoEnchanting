@@ -31,5 +31,6 @@ namespace Ext
 		RE::Actor*                    actor;
 		RE::BGSArtObject*             effectArt;
 		RE::NiPointer<RE::NiAVObject> attachRoot;
+		bool                          hasAdjustNode;
 	};
 }
