@@ -14,50 +14,36 @@ namespace Ext
 			return false;
 		}
 
-		bool armorCompatible = true;
+		bool restrictionsCompatible = true;
 
 		auto& entry = a_menu->listEntries[a_index];
 		auto filterFlag = entry->filterFlag.underlying();
 
-		if (filterFlag == FilterFlag::EnchantArmor) {
-			if (a_menu->selected.effects.empty()) {
-				auto obj = static_cast<ItemChangeEntry*>(entry.get())->data->GetObject();
-
-				if (auto armor = obj->As<RE::TESObjectARMO>()) {
-					for (auto& effect : a_menu->selected.effects) {
-						auto& wornRestrictions = effect->data->data.wornRestrictions;
-
-						armorCompatible = armorCompatible && std::ranges::any_of(
-							std::span(armor->keywords, armor->numKeywords),
-							[&](auto keyword)
-							{
-								return wornRestrictions->HasForm(keyword);
-							});
-					}
-				}
+		// Enable worn restrictions for weapon and ammo
+		switch (filterFlag) {
+		case FilterFlag::EnchantWeapon:
+		case FilterFlag::EnchantArmor:
+		case FilterFlag::EnchantAmmo:
+		{
+			for (auto& effect : a_menu->selected.effects) {
+				const auto item = static_cast<ItemChangeEntry*>(entry.get());
+				restrictionsCompatible &= HasCompatibleRestrictions(item, effect.get());
 			}
-		}
-		else if (filterFlag == FilterFlag::EffectArmor) {
-			auto& item = a_menu->selected.item;
+		} break;
 
-			if (item && item->filterFlag.underlying() == FilterFlag::EnchantArmor) {
-				if (auto armor = item->data->GetObject()->As<RE::TESObjectARMO>()) {
-
-					auto wornRestrictions =
-						static_cast<EnchantmentEntry*>(entry.get())->data->data.wornRestrictions;
-
-					armorCompatible = armorCompatible && std::ranges::any_of(
-						std::span(armor->keywords, armor->numKeywords),
-						[&](auto keyword)
-						{
-							return wornRestrictions->HasForm(keyword);
-						});
-				}
-			}
+		case FilterFlag::EffectWeapon:
+		case FilterFlag::EffectArmor:
+		case FilterFlag::EffectAmmo:
+		{
+			const auto item = a_menu->selected.item.get();
+			const auto effect = static_cast<EnchantmentEntry*>(entry.get());
+			restrictionsCompatible = HasCompatibleRestrictions(item, effect);
+		} break;
 		}
 
-		if (!armorCompatible) {
+		if (!restrictionsCompatible) {
 			if (a_showNotification) {
+				// "Chosen enchantment cannot be applied to this item"
 				static const auto setting =
 					RE::GameSettingCollection::GetSingleton()
 					->GetSetting("sEnchantArmorIncompatible");
@@ -119,6 +105,29 @@ namespace Ext
 		default:
 			return true;
 		}
+	}
+
+	bool EnchantConstructMenu::HasCompatibleRestrictions(
+		ItemChangeEntry* a_item,
+		EnchantmentEntry* a_effect)
+	{
+		if (!a_item || !a_effect) {
+			return true;
+		}
+
+		auto keywordForm = skyrim_cast<RE::BGSKeywordForm*>(a_item->data->object);
+		auto restrictions = a_effect->data->data.wornRestrictions;
+
+		if (!restrictions) {
+			return true;
+		}
+
+		return std::ranges::any_of(
+			std::span(keywordForm->keywords, keywordForm->numKeywords),
+			[&](auto keyword)
+			{
+				return restrictions->HasForm(keyword);
+			});
 	}
 
 	std::uint16_t EnchantConstructMenu::GetAmmoEnchantQuantity(Menu* a_menu)
