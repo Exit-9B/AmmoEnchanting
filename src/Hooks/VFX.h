@@ -16,6 +16,8 @@ namespace Hooks
 		static void UnequipAmmoPatch();
 		// Attach Casting Art when bow is drawn
 		static void AttachArrowPatch();
+		// Attach Casting Art when arrow is fired
+		static void FireArrowPatch();
 
 		static void DoEquipObject(
 			RE::ActorEquipManager* a_equipManager,
@@ -37,10 +39,14 @@ namespace Hooks
 			RE::PlayerCharacter* a_player,
 			const RE::BSTSmartPointer<RE::BipedAnim>& a_biped);
 
+		static void ArrowProjectile_Handle3DLoaded(RE::ArrowProjectile* a_projectile);
+
 		inline static REL::Relocation<decltype(&DoEquipObject)> _DoEquipObject;
 		inline static REL::Relocation<decltype(&DoUnequipObject)> _DoUnequipObject;
 		inline static REL::Relocation<decltype(&Character_AttachArrow)> _Character_AttachArrow;
 		inline static REL::Relocation<decltype(&PlayerCharacter_AttachArrow)>
 			_PlayerCharacter_AttachArrow;
+		inline static REL::Relocation<decltype(&ArrowProjectile_Handle3DLoaded)>
+			_ArrowProjectile_Handle3DLoaded;
 	};
 }

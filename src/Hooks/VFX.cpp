@@ -2,6 +2,7 @@
 
 #include "Data/EnchantArtManager.h"
 #include "Ext/TESAmmo.h"
+#include "Ext/TESObjectREFR.h"
 #include "RE/Offset.h"
 
 namespace Hooks
@@ -11,6 +12,7 @@ namespace Hooks
 		EquipAmmoPatch();
 		UnequipAmmoPatch();
 		AttachArrowPatch();
+		FireArrowPatch();
 	}
 
 	void VFX::EquipAmmoPatch()
@@ -54,6 +56,15 @@ namespace Hooks
 
 		_PlayerCharacter_AttachArrow =
 			PlayerCharacter_vtbl.write_vfunc(205, &VFX::PlayerCharacter_AttachArrow);
+	}
+
+	void VFX::FireArrowPatch()
+	{
+		static auto ArrowProjectile_vtbl =
+			REL::Relocation<std::uintptr_t>(RE::Offset::ArrowProjectile::Vtbl);
+
+		_ArrowProjectile_Handle3DLoaded =
+			ArrowProjectile_vtbl.write_vfunc(192, &VFX::ArrowProjectile_Handle3DLoaded);
 	}
 
 	void VFX::DoEquipObject(
@@ -105,5 +116,20 @@ namespace Hooks
 	{
 		_PlayerCharacter_AttachArrow(a_player, a_biped);
 		Data::EnchantArtManager::GetSingleton()->AttachArrow(a_player);
+	}
+
+	void VFX::ArrowProjectile_Handle3DLoaded(RE::ArrowProjectile* a_projectile)
+	{
+		const auto& explosion = a_projectile->explosion;
+		const auto enchantment = explosion ? explosion->formEnchanting : nullptr;
+		const auto costliestEffect = enchantment ? enchantment->GetCostliestEffectItem() : nullptr;
+		const auto baseEffect = costliestEffect ? costliestEffect->baseEffect : nullptr;
+		const auto castingArt = baseEffect ? baseEffect->data.castingArt : nullptr;
+
+		if (castingArt) {
+			Ext::TESObjectREFR::ApplyArtObject(a_projectile, castingArt);
+		}
+
+		_ArrowProjectile_Handle3DLoaded(a_projectile);
 	}
 }

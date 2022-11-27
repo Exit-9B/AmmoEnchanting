@@ -7,6 +7,11 @@ namespace RE::Offset
 		inline static constexpr REL::ID AddWornItem{ 38004 };
 	}
 
+	namespace ArrowProjectile
+	{
+		inline static constexpr REL::ID Vtbl{ 209891 };
+	}
+
 	namespace BGSCreatedObjectManager
 	{
 		inline static constexpr REL::ID Singleton{ 400320 };
@@ -123,6 +128,11 @@ namespace RE::Offset
 	namespace TESForm
 	{
 		inline static constexpr REL::ID GetEnchantment{ 14563 };
+	}
+
+	namespace TESObjectREFR
+	{
+		inline static constexpr REL::ID ApplyArtObject{ 22769 };
 	}
 
 	inline static constexpr REL::ID ShowHUDAmmo{ 51629 };
