@@ -25,6 +25,10 @@ namespace Data
 				delete fx.quiverFXController;
 			}
 
+			if (fx.arrowFXController) {
+				delete fx.arrowFXController;
+			}
+
 			_fxMap.erase(it);
 		}
 
@@ -50,7 +54,8 @@ namespace Data
 						id);
 
 					if (modelResult == 0) {
-						fx.arrowEffectModel.reset(Ext::NiAVObject::Clone(id->data.get()));
+						const auto clone = Ext::NiAVObject::Clone(id->data.get());
+						fx.arrowFXController = new Ext::ArrowEffectController(clone);
 					}
 
 					RE::BSResource::FreeRequestedModel(id);
@@ -61,66 +66,29 @@ namespace Data
 		}
 	}
 
-	void EnchantArtManager::AttachArrow(RE::Actor* a_actor)
+	void EnchantArtManager::AttachArrow(RE::Actor* a_actor, bool a_firstPerson)
 	{
 		std::scoped_lock lk{ _mutex };
 
 		auto handle = a_actor->GetHandle();
 		if (auto it = _fxMap.find(handle); it != _fxMap.end()) {
 			auto& fx = it->second;
-			if (fx.arrowEffectModel) {
-
-				if (const auto root = GetArrowAttachRoot(a_actor)) {
-
-					const auto clone = Ext::NiAVObject::Clone(fx.arrowEffectModel.get());
-					Ext::NiAVObject::SetValueNodeHidden(clone, true);
-
-					Ext::TaskQueueInterface::Attach3D(
-						RE::TaskQueueInterface::GetSingleton(),
-						clone,
-						root);
-				}
+			if (fx.arrowFXController) {
+				fx.arrowFXController->AttachArrow(a_actor, a_firstPerson);
 			}
 		}
 	}
 
-	RE::NiAVObject* EnchantArtManager::GetArrowAttachRoot(RE::Actor* a_actor)
+	void EnchantArtManager::ResetArrow(RE::Actor* a_actor, bool a_firstPerson)
 	{
-		const auto process = a_actor->currentProcess;
-		const auto middleHigh = process ? process->middleHigh : nullptr;
-		const auto rightHand = middleHigh ? middleHigh->rightHand : nullptr;
-		const auto weapon = rightHand && rightHand->object
-			? rightHand->object->As<RE::TESObjectWEAP>()
-			: nullptr;
+		std::scoped_lock lk{ _mutex };
 
-		if (!weapon)
-			return nullptr;
-
-		const auto actor3D = a_actor->Get3D();
-		const auto actorNode = actor3D ? actor3D->AsNode() : nullptr;
-
-		if (!actorNode)
-			return nullptr;
-
-		const bool isCrossbow = weapon->weaponData.animationType == RE::WEAPON_TYPE::kCrossbow;
-		const RE::BSFixedString name = isCrossbow ? "NPC R MagicNode [RMag]"sv : "Weapon"sv;
-
-		const auto arrowAttach = actorNode->GetObjectByName(name);
-
-		if (isCrossbow) {
-			// Account for offset of bolt placement
-			const auto adjustNode = RE::NiNode::Create(1);
-			adjustNode->local.translate.y = 7.0f;
-
-			Ext::TaskQueueInterface::Attach3D(
-				RE::TaskQueueInterface::GetSingleton(),
-				adjustNode,
-				arrowAttach);
-
-			return adjustNode;
-		}
-		else {
-			return arrowAttach;
+		auto handle = a_actor->GetHandle();
+		if (auto it = _fxMap.find(handle); it != _fxMap.end()) {
+			auto& fx = it->second;
+			if (fx.arrowFXController) {
+				fx.arrowFXController->ResetArrow(a_actor, a_firstPerson);
+			}
 		}
 	}
 }

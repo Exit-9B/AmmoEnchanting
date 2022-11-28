@@ -13,6 +13,7 @@ namespace Hooks
 		UnequipAmmoPatch();
 		AttachArrowPatch();
 		FireArrowPatch();
+		CameraSwitchPatch();
 	}
 
 	void VFX::EquipAmmoPatch()
@@ -67,6 +68,20 @@ namespace Hooks
 			ArrowProjectile_vtbl.write_vfunc(192, &VFX::ArrowProjectile_Handle3DLoaded);
 	}
 
+	void VFX::CameraSwitchPatch()
+	{
+		static const auto hook = REL::Relocation<std::uintptr_t>(
+			RE::Offset::PlayerCharacter::SwitchSkeleton,
+			0xD);
+
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("VFX::CameraSwitchPatch failed to install"sv);
+		}
+
+		auto& trampoline = SKSE::GetTrampoline();
+		_IsTaskPoolRequired = trampoline.write_call<5>(hook.address(), &VFX::ResetVisuals);
+	}
+
 	void VFX::DoEquipObject(
 		RE::ActorEquipManager* a_equipManager,
 		RE::Actor* a_actor,
@@ -115,7 +130,8 @@ namespace Hooks
 		const RE::BSTSmartPointer<RE::BipedAnim>& a_biped)
 	{
 		_PlayerCharacter_AttachArrow(a_player, a_biped);
-		Data::EnchantArtManager::GetSingleton()->AttachArrow(a_player);
+		bool firstPerson = !a_player->Is3rdPersonVisible();
+		Data::EnchantArtManager::GetSingleton()->AttachArrow(a_player, firstPerson);
 	}
 
 	void VFX::ArrowProjectile_Handle3DLoaded(RE::ArrowProjectile* a_projectile)
@@ -131,5 +147,11 @@ namespace Hooks
 		}
 
 		_ArrowProjectile_Handle3DLoaded(a_projectile);
+	}
+
+	bool VFX::ResetVisuals(RE::PlayerCharacter* a_player, bool a_firstPerson)
+	{
+		Data::EnchantArtManager::GetSingleton()->ResetArrow(a_player, a_firstPerson);
+		return _IsTaskPoolRequired();
 	}
 }

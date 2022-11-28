@@ -18,6 +18,8 @@ namespace Hooks
 		static void AttachArrowPatch();
 		// Attach Casting Art when arrow is fired
 		static void FireArrowPatch();
+		// Reset visual effects when switching views
+		static void CameraSwitchPatch();
 
 		static void DoEquipObject(
 			RE::ActorEquipManager* a_equipManager,
@@ -41,6 +43,8 @@ namespace Hooks
 
 		static void ArrowProjectile_Handle3DLoaded(RE::ArrowProjectile* a_projectile);
 
+		static bool ResetVisuals(RE::PlayerCharacter* a_player, bool a_firstPerson);
+
 		inline static REL::Relocation<decltype(&DoEquipObject)> _DoEquipObject;
 		inline static REL::Relocation<decltype(&DoUnequipObject)> _DoUnequipObject;
 		inline static REL::Relocation<decltype(&Character_AttachArrow)> _Character_AttachArrow;
@@ -48,5 +52,6 @@ namespace Hooks
 			_PlayerCharacter_AttachArrow;
 		inline static REL::Relocation<decltype(&ArrowProjectile_Handle3DLoaded)>
 			_ArrowProjectile_Handle3DLoaded;
+		inline static REL::Relocation<bool(*)()> _IsTaskPoolRequired;
 	};
 }

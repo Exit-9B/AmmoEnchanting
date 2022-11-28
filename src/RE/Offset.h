@@ -100,6 +100,7 @@ namespace RE::Offset
 
 	namespace PlayerCharacter
 	{
+		inline static constexpr REL::ID SwitchSkeleton{ 40476 };
 		inline static constexpr REL::ID UseAmmo{ 41243 };
 	}
 
