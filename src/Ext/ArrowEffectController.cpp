@@ -1,7 +1,6 @@
 #include "ArrowEffectController.h"
 
 #include "Ext/NiAVObject.h"
-#include "Ext/TaskQueueInterface.h"
 
 namespace Ext
 {
@@ -39,18 +38,12 @@ namespace Ext
 			const auto adjustNode = RE::NiNode::Create(1);
 			adjustNode->local.translate.y = 7.0f;
 
-			Ext::TaskQueueInterface::Attach3D(
-				RE::TaskQueueInterface::GetSingleton(),
-				adjustNode,
-				arrowAttach);
+			RE::TaskQueueInterface::GetSingleton()->Attach3D(adjustNode, arrowAttach);
 
 			fxAttachRoot = adjustNode;
 		}
 
-		Ext::TaskQueueInterface::Attach3D(
-			RE::TaskQueueInterface::GetSingleton(),
-			model.get(),
-			fxAttachRoot);
+		RE::TaskQueueInterface::GetSingleton()->Attach3D(model.get(), fxAttachRoot);
 
 		attachRoot.reset(fxAttachRoot);
 	}

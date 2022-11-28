@@ -1,7 +1,5 @@
 #pragma once
 
-#include "RE/BGSCreatedObjectManager.h"
-
 namespace Data
 {
 	// TODO: Implement serialization

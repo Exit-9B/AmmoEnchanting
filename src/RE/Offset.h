@@ -14,10 +14,7 @@ namespace RE::Offset
 
 	namespace BGSCreatedObjectManager
 	{
-		inline static constexpr REL::ID Singleton{ 400320 };
-		inline static constexpr REL::ID CreateArmorEnchantment{ 36166 };
 		inline static constexpr REL::ID CreateEnchantment{ 36184 };
-		inline static constexpr REL::ID CreateWeaponEnchantment{ 36165 };
 	}
 
 	namespace BSResource
@@ -65,11 +62,6 @@ namespace RE::Offset
 	namespace EnchantmentItem
 	{
 		inline static constexpr REL::ID Create{ 36178 };
-	}
-
-	namespace ExtraDataList
-	{
-		inline static constexpr REL::ID SetCount{ 11617 };
 	}
 
 	namespace InventoryChanges
@@ -121,19 +113,9 @@ namespace RE::Offset
 		inline static constexpr REL::ID Init{ 51011 };
 	}
 
-	namespace TaskQueueInterface
-	{
-		inline static constexpr REL::ID Attach3D{ 36897 };
-	}
-
 	namespace TESForm
 	{
 		inline static constexpr REL::ID GetEnchantment{ 14563 };
-	}
-
-	namespace TESObjectREFR
-	{
-		inline static constexpr REL::ID ApplyArtObject{ 22769 };
 	}
 
 	inline static constexpr REL::ID ShowHUDAmmo{ 51629 };

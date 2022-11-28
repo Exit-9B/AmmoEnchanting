@@ -2,7 +2,6 @@
 
 #include "Data/EnchantArtManager.h"
 #include "Ext/TESAmmo.h"
-#include "Ext/TESObjectREFR.h"
 #include "RE/Offset.h"
 
 namespace Hooks
@@ -143,7 +142,7 @@ namespace Hooks
 		const auto castingArt = baseEffect ? baseEffect->data.castingArt : nullptr;
 
 		if (castingArt) {
-			Ext::TESObjectREFR::ApplyArtObject(a_projectile, castingArt);
+			a_projectile->ApplyArtObject(castingArt);
 		}
 
 		_ArrowProjectile_Handle3DLoaded(a_projectile);

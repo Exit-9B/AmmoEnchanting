@@ -1,7 +1,5 @@
 #include "AmmoEnchantmentController.h"
 
-#include "Ext/TaskQueueInterface.h"
-
 namespace Ext
 {
 	AmmoEnchantmentController::AmmoEnchantmentController(
@@ -54,10 +52,7 @@ namespace Ext
 					adjustNode->local.translate.y = 1.0f;
 					adjustNode->local.scale = 0.4f;
 
-					Ext::TaskQueueInterface::Attach3D(
-						RE::TaskQueueInterface::GetSingleton(),
-						adjustNode,
-						quiver);
+					RE::TaskQueueInterface::GetSingleton()->Attach3D(adjustNode, quiver);
 
 					attachRoot.reset(adjustNode);
 					hasAdjustNode = true;

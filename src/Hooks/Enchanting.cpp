@@ -2,7 +2,6 @@
 
 #include "Data/CreatedObjectManager.h"
 #include "Ext/EnchantConstructMenu.h"
-#include "Ext/ExtraDataList.h"
 #include "RE/Offset.h"
 #include "Settings/INISettings.h"
 
@@ -257,7 +256,7 @@ namespace Hooks
 		}
 
 		if (creatingCount > 1) {
-			Ext::ExtraDataList::SetCount(a_extraList, creatingCount);
+			a_extraList->SetCount(creatingCount);
 		}
 	}
 

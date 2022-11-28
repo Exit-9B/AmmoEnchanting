@@ -1,7 +1,6 @@
 #include "EnchantArtManager.h"
 
 #include "Ext/NiAVObject.h"
-#include "Ext/TaskQueueInterface.h"
 
 namespace Data
 {
