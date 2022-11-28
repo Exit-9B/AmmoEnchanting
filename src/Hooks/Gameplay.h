@@ -1,7 +1,5 @@
 #pragma once
 
-#include "RE/AmmoHUDData.h"
-
 namespace Hooks
 {
 	class Gameplay
@@ -36,7 +34,7 @@ namespace Hooks
 			RE::UIMessageQueue* a_queue,
 			const RE::BSFixedString& a_menuName,
 			RE::UI_MESSAGE_TYPE a_type,
-			RE::AmmoHUDData* a_data);
+			RE::HUDData* a_data);
 
 		static std::int32_t UseAmmo(RE::PlayerCharacter* a_player, std::int32_t a_shotCount);
 

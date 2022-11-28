@@ -175,7 +175,7 @@ namespace Hooks
 		RE::UIMessageQueue* a_queue,
 		const RE::BSFixedString& a_menuName,
 		RE::UI_MESSAGE_TYPE a_type,
-		RE::AmmoHUDData* a_data)
+		RE::HUDData* a_data)
 	{
 		const auto player = RE::PlayerCharacter::GetSingleton();
 		const auto& actorProcess = player->currentProcess;
@@ -185,7 +185,7 @@ namespace Hooks
 		const auto extraList = extraLists && !extraLists->empty() ? extraLists->front() : nullptr;
 
 		if (extraList) {
-			a_data->count = extraList->GetCount();
+			a_data->data = extraList->GetCount();
 		}
 
 		return _AddMessage(a_queue, a_menuName, a_type, a_data);
