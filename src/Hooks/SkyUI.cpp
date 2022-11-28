@@ -153,35 +153,33 @@ namespace Hooks
 			a_dataContainer->SetMember("formType", form->GetFormType());
 			a_dataContainer->SetMember("formId", form->formID);
 
-			if (const auto enchantment = form->As<RE::EnchantmentItem>()) {
-				RE::GFxValue spellName;
-				spellName.SetString(enchantment->GetName());
-				a_dataContainer->SetMember("spellName", spellName);
+			RE::GFxValue spellName;
+			spellName.SetString(form->GetName());
+			a_dataContainer->SetMember("spellName", spellName);
 
-				const auto effect = enchantment->GetCostliestEffectItem();
-				if (effect && effect->baseEffect) {
-					a_dataContainer->SetMember("magnitude", effect->effectItem.magnitude);
-					a_dataContainer->SetMember("duration", effect->effectItem.duration);
-					a_dataContainer->SetMember("area", effect->effectItem.area);
+			const auto effect = form->GetCostliestEffectItem();
+			if (effect && effect->baseEffect) {
+				a_dataContainer->SetMember("magnitude", effect->effectItem.magnitude);
+				a_dataContainer->SetMember("duration", effect->effectItem.duration);
+				a_dataContainer->SetMember("area", effect->effectItem.area);
 
-					const auto& baseEffect = effect->baseEffect;
+				const auto& baseEffect = effect->baseEffect;
 
-					RE::GFxValue effectName;
-					effectName.SetString(baseEffect->GetName());
-					a_dataContainer->SetMember("effectName", effectName);
+				RE::GFxValue effectName;
+				effectName.SetString(baseEffect->GetName());
+				a_dataContainer->SetMember("effectName", effectName);
 
-					a_dataContainer->SetMember("subType", baseEffect->GetMagickSkill());
-					a_dataContainer->SetMember("effectFlags", baseEffect->data.flags.underlying());
-					a_dataContainer->SetMember("school", baseEffect->GetMagickSkill());
-					a_dataContainer->SetMember("skillLevel", baseEffect->GetMinimumSkillLevel());
-					a_dataContainer->SetMember("archetype", baseEffect->GetArchetype());
-					a_dataContainer->SetMember("deliveryType", baseEffect->data.delivery);
-					a_dataContainer->SetMember("castTime", baseEffect->data.spellmakingChargeTime);
-					a_dataContainer->SetMember("delayTime", baseEffect->data.aiDelayTimer);
-					a_dataContainer->SetMember("actorValue", baseEffect->data.primaryAV);
-					a_dataContainer->SetMember("castType", baseEffect->data.castingType);
-					a_dataContainer->SetMember("magicType", baseEffect->data.resistVariable);
-				}
+				a_dataContainer->SetMember("subType", baseEffect->GetMagickSkill());
+				a_dataContainer->SetMember("effectFlags", baseEffect->data.flags.underlying());
+				a_dataContainer->SetMember("school", baseEffect->GetMagickSkill());
+				a_dataContainer->SetMember("skillLevel", baseEffect->GetMinimumSkillLevel());
+				a_dataContainer->SetMember("archetype", baseEffect->GetArchetype());
+				a_dataContainer->SetMember("deliveryType", baseEffect->data.delivery);
+				a_dataContainer->SetMember("castTime", baseEffect->data.spellmakingChargeTime);
+				a_dataContainer->SetMember("delayTime", baseEffect->data.aiDelayTimer);
+				a_dataContainer->SetMember("actorValue", baseEffect->data.primaryAV);
+				a_dataContainer->SetMember("castType", baseEffect->data.castingType);
+				a_dataContainer->SetMember("magicType", baseEffect->data.resistVariable);
 			}
 		} break;
 		}
