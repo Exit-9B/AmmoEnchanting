@@ -110,13 +110,13 @@ namespace Hooks
 		case FilterFlag::EnchantAmmo:
 		case FilterFlag::DisenchantAmmo:
 		{
-			auto entry = static_cast<Menu::ItemChangeEntry*>(a_entry);
-			auto& data = entry->data;
+			const auto entry = static_cast<Menu::ItemChangeEntry*>(a_entry);
+			const auto& data = entry->data;
 
 			if (!data || !data->object)
 				break;
 
-			const auto form = data->object;
+			const auto& form = data->object;
 			const auto player = RE::PlayerCharacter::GetSingleton();
 
 			a_dataContainer->SetMember("formType", form->GetFormType());
@@ -144,8 +144,8 @@ namespace Hooks
 
 		case FilterFlag::EffectAmmo:
 		{
-			auto entry = static_cast<Menu::EnchantmentEntry*>(a_entry);
-			auto& form = entry->data;
+			const auto entry = static_cast<Menu::EnchantmentEntry*>(a_entry);
+			const auto& form = entry->data;
 
 			if (!form)
 				break;
