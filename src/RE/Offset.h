@@ -29,6 +29,11 @@ namespace RE::Offset
 		inline static constexpr REL::ID Vtbl{ 207886 };
 	}
 
+	namespace CraftingMenu
+	{
+		inline static constexpr REL::ID ProcessMessage{ 51200 };
+	}
+
 	namespace CraftingSubMenus
 	{
 		namespace EnchantConstructMenu
