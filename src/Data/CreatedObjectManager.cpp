@@ -1,4 +1,5 @@
 #include "CreatedObjectManager.h"
+
 #include "RE/Offset.h"
 
 namespace Data
@@ -20,8 +21,7 @@ namespace Data
 	RE::EnchantmentItem* CreatedObjectManager::CreateAmmoEnchantment(
 		const RE::BSTArray<RE::Effect>& a_effects)
 	{
-		using EnchantmentFactory = RE::EnchantmentItem* (*)(const RE::BSTArray<RE::Effect>&, bool);
-		static REL::Relocation<EnchantmentFactory> factory{ RE::Offset::EnchantmentItem::Create };
+		using EnchantmentFactory = decltype(&CreatedObjectManager::CreateEnchantment);
 
 		using CreateEnchantment_t = RE::EnchantmentItem* (*)(
 			RE::BSTArray<EnchantmentEntry>&,
@@ -33,7 +33,11 @@ namespace Data
 			RE::Offset::BGSCreatedObjectManager::CreateEnchantment
 		};
 
-		auto enchantment = create(ammoEnchantments, a_effects, factory.get(), true);
+		auto enchantment = create(
+			ammoEnchantments,
+			a_effects,
+			&CreatedObjectManager::CreateEnchantment,
+			true);
 
 		if (enchantment) {
 			auto costliestEffect = enchantment->GetCostliestEffectItem()->baseEffect;
@@ -60,7 +64,8 @@ namespace Data
 
 	RE::BGSExplosion* CreatedObjectManager::EnchantExplosion(
 		RE::BGSExplosion* a_base,
-		RE::EnchantmentItem* a_enchantment)
+		RE::EnchantmentItem* a_enchantment,
+		RE::FormID a_formID)
 	{
 		const auto explosionFactory =
 			RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSExplosion>();
@@ -80,6 +85,19 @@ namespace Data
 		created->castingType = RE::MagicSystem::CastingType::kFireAndForget;
 		created->amountofEnchantment = 1;
 
+		if (a_formID) {
+			created->SetFormID(a_formID, false);
+		}
+
 		return created;
+	}
+
+	RE::EnchantmentItem* CreatedObjectManager::CreateEnchantment(
+		RE::BSTArray<RE::Effect>& a_effects,
+		bool a_isWeapon)
+	{
+		using func_t = decltype(&CreatedObjectManager::CreateEnchantment);
+		static REL::Relocation<func_t> func{ RE::Offset::EnchantmentItem::Create };
+		return func(a_effects, a_isWeapon);
 	}
 }

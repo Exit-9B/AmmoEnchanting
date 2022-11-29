@@ -17,6 +17,8 @@ namespace Data
 		EnchantArtManager& operator=(const EnchantArtManager&) = delete;
 		EnchantArtManager& operator=(EnchantArtManager&&) = delete;
 
+		void Revert();
+
 		void UpdateAmmoEnchantment(RE::Actor* a_actor, RE::EnchantmentItem* a_enchantment);
 
 		void AttachArrow(RE::Actor* a_actor, bool a_firstPerson = false);
@@ -31,6 +33,8 @@ namespace Data
 		};
 
 		EnchantArtManager() = default;
+
+		static bool IsUsingCrossbow(const RE::Actor* a_actor);
 
 		std::mutex _mutex;
 		RE::BSTHashMap<RE::ActorHandle, EnchantFX> _fxMap;

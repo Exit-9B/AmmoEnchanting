@@ -12,6 +12,7 @@ namespace Hooks
 	{
 		GetEnchantmentPatch();
 		GoldValuePatch();
+		LoadGamePatch();
 	}
 
 	void Misc::GetEnchantmentPatch()
@@ -57,6 +58,36 @@ namespace Hooks
 		assert(patch.getSize() <= 0x31);
 
 		REL::safe_fill(hook.address(), REL::NOP, 0x31);
+		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
+	}
+
+	void Misc::LoadGamePatch()
+	{
+		static const auto hook = REL::Relocation<std::uintptr_t>(
+			RE::Offset::ExtraDataList::LoadGame,
+			0x1E2D);
+
+		if (!REL::make_pattern<"8B 4D 90">().match(hook.address())) {
+			util::report_and_fail("Misc::LoadGamePatch failed to install"sv);
+		}
+
+		struct Patch : Xbyak::CodeGenerator
+		{
+			Patch()
+			{
+				mov(rdx, ptr[rsp + 0x38]);
+				mov(ecx, ptr[rbp - 0x70]);
+				mov(rax, util::function_ptr(&Misc::LookupEnchantment));
+				call(rax);
+			}
+		};
+
+		Patch patch{};
+		patch.ready();
+
+		assert(patch.getSize() < 0x25);
+
+		REL::safe_fill(hook.address(), REL::NOP, 0x25);
 		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
 	}
 
@@ -118,5 +149,19 @@ namespace Hooks
 
 			return cost;
 		}
+	}
+
+	RE::EnchantmentItem* Misc::LookupEnchantment(
+		RE::FormID a_formID,
+		RE::ExtraEnchantment* a_exEnchantment)
+	{
+		auto enchantment = RE::TESForm::LookupByID<RE::EnchantmentItem>(a_formID);
+		if (!enchantment) {
+			Data::CreatedObjectManager::GetSingleton()->AddFailedEnchantmentLoad(
+				a_exEnchantment,
+				a_formID);
+		}
+
+		return enchantment;
 	}
 }

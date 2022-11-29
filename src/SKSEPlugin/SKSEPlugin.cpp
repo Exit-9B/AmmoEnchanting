@@ -5,6 +5,7 @@
 #include "Hooks/Misc.h"
 #include "Hooks/SkyUI.h"
 #include "Hooks/VFX.h"
+#include "Serialization/Serialization.h"
 #include "Settings/INISettings.h"
 
 namespace
@@ -66,6 +67,12 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	Hooks::Gameplay::Install();
 	Hooks::VFX::Install();
 	Hooks::SkyUI::Install();
+
+	const auto serialization = SKSE::GetSerializationInterface();
+	serialization->SetUniqueID(Serialization::ID);
+	serialization->SetSaveCallback(&Serialization::SaveCallback);
+	serialization->SetLoadCallback(&Serialization::LoadCallback);
+	serialization->SetRevertCallback(&Serialization::RevertCallback);
 
 	Settings::INISettings::GetSingleton()->LoadSettings();
 

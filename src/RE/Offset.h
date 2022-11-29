@@ -24,6 +24,12 @@ namespace RE::Offset
 		inline static constexpr REL::ID RequestModelDirect{ 75781 };
 	}
 
+	namespace BGSSaveLoadGame
+	{
+		inline static constexpr REL::ID ClearForm{ 35588 };
+		inline static constexpr REL::ID Singleton{ 403330 };
+	}
+
 	namespace Character
 	{
 		inline static constexpr REL::ID Vtbl{ 207886 };
@@ -67,6 +73,11 @@ namespace RE::Offset
 	namespace EnchantmentItem
 	{
 		inline static constexpr REL::ID Create{ 36178 };
+	}
+
+	namespace ExtraDataList
+	{
+		inline static constexpr REL::ID LoadGame{ 12095 };
 	}
 
 	namespace InventoryChanges

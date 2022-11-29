@@ -14,6 +14,8 @@ namespace Hooks
 		static void GetEnchantmentPatch();
 		// Scale the gold value of enchanted ammo
 		static void GoldValuePatch();
+		// Handle extra enchantment data failing to find temporary forms
+		static void LoadGamePatch();
 
 		static RE::TESEnchantableForm* AsEnchantableForm(
 			RE::TESForm* a_inptr,
@@ -27,6 +29,10 @@ namespace Hooks
 			RE::ExtraDataList* a_extraList,
 			RE::MagicItem* a_magicItem,
 			float a_baseValue);
+
+		static RE::EnchantmentItem* LookupEnchantment(
+			RE::FormID a_formID,
+			RE::ExtraEnchantment* a_exEnchantment);
 
 		inline static REL::Relocation<decltype(&AsEnchantableForm)> _AsEnchantableForm;
 	};
