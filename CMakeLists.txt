@@ -39,7 +39,28 @@ target_include_directories(
 
 install(
 	FILES
-		"${PROJECT_SOURCE_DIR}/data/${PROJECT_NAME}.ini"
+		"${PROJECT_SOURCE_DIR}/data/AmmoEnchanting.esp"
+		"${PROJECT_SOURCE_DIR}/data/AmmoEnchanting_ExoticArrows.esp"
+		"${PROJECT_SOURCE_DIR}/data/AmmoEnchanting_KID.ini"
+	DESTINATION
+		"."
+)
+
+install(
+	FILES
+		"${PROJECT_SOURCE_DIR}/data/SKSE/Plugins/${PROJECT_NAME}.ini"
 	DESTINATION
 		"SKSE/Plugins"
+)
+
+install(
+	FILES
+		"${PROJECT_SOURCE_DIR}/data/Meshes/AmmoEnchanting/FireArrowFX.nif"
+		"${PROJECT_SOURCE_DIR}/data/Meshes/AmmoEnchanting/FireQuiverFX.nif"
+		"${PROJECT_SOURCE_DIR}/data/Meshes/AmmoEnchanting/FrostArrowFX.nif"
+		"${PROJECT_SOURCE_DIR}/data/Meshes/AmmoEnchanting/FrostQuiverFX.nif"
+		"${PROJECT_SOURCE_DIR}/data/Meshes/AmmoEnchanting/ShockArrowFX.nif"
+		"${PROJECT_SOURCE_DIR}/data/Meshes/AmmoEnchanting/ShockQuiverFX.nif"
+	DESTINATION
+		"Meshes/AmmoEnchanting"
 )
