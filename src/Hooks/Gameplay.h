@@ -13,6 +13,9 @@ namespace Hooks
 		// Allow equipping ammo with differing extra data
 		static void EquipAmmoPatch();
 
+		// Fix unenchanted ammo being replaced with enchanted ammo on auto-equip
+		static void AutoEquipAmmoPatch();
+
 		// Copy enchantment from ExtraEnchantment to Projectile explosion
 		static void LaunchProjectilePatch();
 
@@ -28,6 +31,8 @@ namespace Hooks
 			RE::ExtraDataList* a_extraList,
 			RE::Actor* a_actor);
 
+		static std::uint32_t GetCount(RE::InventoryEntryData* a_entry);
+
 		static RE::BGSExplosion* GetProjectileExplosion(RE::Projectile::LaunchData* a_launchData);
 
 		static void AddMessage(
@@ -38,6 +43,7 @@ namespace Hooks
 
 		static std::int32_t UseAmmo(RE::PlayerCharacter* a_player, std::int32_t a_shotCount);
 
+		inline static REL::Relocation<decltype(&GetCount)> _GetCount;
 		inline static REL::Relocation<decltype(&AddMessage)> _AddMessage;
 		inline static REL::Relocation<decltype(&UseAmmo)> _UseAmmo;
 	};

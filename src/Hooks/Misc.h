@@ -17,12 +17,7 @@ namespace Hooks
 		// Handle extra enchantment data failing to find temporary forms
 		static void LoadGamePatch();
 
-		static RE::TESEnchantableForm* AsEnchantableForm(
-			RE::TESForm* a_inptr,
-			std::int32_t a_vfDelta = 0,
-			void* a_srcType = REL::Relocation<void*>(RE::TESForm::RTTI).get(),
-			void* a_targetType = REL::Relocation<void*>(RE::TESEnchantableForm::RTTI).get(),
-			std::int32_t a_isReference = 0);
+		static RE::TESEnchantableForm* AsEnchantableForm(RE::TESForm* a_form);
 
 		static float CalculateCost(
 			RE::TESObject* a_object,
@@ -33,7 +28,5 @@ namespace Hooks
 		static RE::EnchantmentItem* LookupEnchantment(
 			RE::FormID a_formID,
 			RE::ExtraEnchantment* a_exEnchantment);
-
-		inline static REL::Relocation<decltype(&AsEnchantableForm)> _AsEnchantableForm;
 	};
 }

@@ -12,6 +12,7 @@ namespace Hooks
 	void Gameplay::Install()
 	{
 		EquipAmmoPatch();
+		AutoEquipAmmoPatch();
 		LaunchProjectilePatch();
 		HUDAmmoPatch();
 		UseAmmoPatch();
@@ -77,6 +78,20 @@ namespace Hooks
 		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
 	}
 
+	void Gameplay::AutoEquipAmmoPatch()
+	{
+		static const auto hook = REL::Relocation<std::uintptr_t>(
+			RE::Offset::Actor::AutoEquipNewAmmo,
+			0x122);
+
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("Gameplay::AutoEquipAmmoPatch failed to install"sv);
+		}
+
+		auto& trampoline = SKSE::GetTrampoline();
+		_GetCount = trampoline.write_call<5>(hook.address(), &Gameplay::GetCount);
+	}
+
 	void Gameplay::HUDAmmoPatch()
 	{
 		static const auto hook = REL::Relocation<std::uintptr_t>(RE::Offset::ShowHUDAmmo, 0xBF);
@@ -129,6 +144,17 @@ namespace Hooks
 				true,
 				false,
 				nullptr);
+		}
+	}
+
+	std::uint32_t Gameplay::GetCount(RE::InventoryEntryData* a_entry)
+	{
+		if (a_entry->extraLists && !a_entry->extraLists->empty()) {
+			auto& extraList = a_entry->extraLists->front();
+			return extraList->GetCount();
+		}
+		else {
+			return _GetCount(a_entry);
 		}
 	}
 

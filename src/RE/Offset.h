@@ -5,6 +5,7 @@ namespace RE::Offset
 	namespace Actor
 	{
 		inline static constexpr REL::ID AddWornItem{ 38004 };
+		inline static constexpr REL::ID AutoEquipNewAmmo{ 41244 };
 	}
 
 	namespace ArrowProjectile

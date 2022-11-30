@@ -19,14 +19,29 @@ namespace Hooks
 	{
 		static const auto hook = REL::Relocation<std::uintptr_t>(
 			RE::Offset::TESForm::GetEnchantment,
-			0x23);
+			0xD);
 
-		if (!REL::make_pattern<"E8">().match(hook.address())) {
+		if (!REL::make_pattern<"4C 8D 0D">().match(hook.address())) {
 			util::report_and_fail("Misc::GetEnchantmentPatch failed to install"sv);
 		}
 
-		auto& trampoline = SKSE::GetTrampoline();
-		_AsEnchantableForm = trampoline.write_call<5>(hook.address(), &Misc::AsEnchantableForm);
+		struct Patch : Xbyak::CodeGenerator
+		{
+			Patch()
+			{
+				xor_(ebx, ebx);
+				mov(rax, util::function_ptr(&Misc::AsEnchantableForm));
+				call(rax);
+			}
+		};
+
+		Patch patch{};
+		patch.ready();
+
+		assert(patch.getSize() <= 0x1B);
+
+		REL::safe_fill(hook.address(), REL::NOP, 0x1B);
+		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
 	}
 
 	void Misc::GoldValuePatch()
@@ -91,21 +106,14 @@ namespace Hooks
 		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
 	}
 
-	RE::TESEnchantableForm* Misc::AsEnchantableForm(
-		RE::TESForm* a_inptr,
-		std::int32_t a_vfDelta,
-		void* a_srcType,
-		void* a_targetType,
-		std::int32_t a_isReference)
+	RE::TESEnchantableForm* Misc::AsEnchantableForm(RE::TESForm* a_form)
 	{
-		auto inptr = a_inptr;
-
-		if (const auto ammo = a_inptr->As<RE::TESAmmo>()) {
+		if (const auto ammo = a_form->As<RE::TESAmmo>()) {
 			const auto projectile = ammo ? ammo->data.projectile : nullptr;
-			inptr = projectile ? projectile->data.explosionType : nullptr;
+			a_form = projectile ? projectile->data.explosionType : nullptr;
 		}
 
-		return _AsEnchantableForm(inptr, a_vfDelta, a_srcType, a_targetType, a_isReference);
+		return skyrim_cast<RE::TESEnchantableForm*>(a_form);
 	}
 
 	float Misc::CalculateCost(
