@@ -8,6 +8,12 @@ project(
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+option(BUILD_BACKPORT "Build for old Skyrim SE versions (1.6.318-1.6.353)." OFF)
+
+if(BUILD_BACKPORT)
+	add_compile_definitions(SKYRIMSE_PRE_1_6_629)
+endif()
+
 list(APPEND CMAKE_IGNORE_PATH "${PROJECT_BINARY_DIR}")
 list(APPEND CMAKE_MODULE_PATH
 	"${PROJECT_SOURCE_DIR}/tools/SKSE-CMakeModules/Modules"
