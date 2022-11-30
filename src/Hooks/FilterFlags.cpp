@@ -3,6 +3,7 @@
 #include "Data/CreatedObjectManager.h"
 #include "Ext/TESAmmo.h"
 #include "RE/Offset.h"
+#include "Settings/GlobalSettings.h"
 
 #include <xbyak/xbyak.h>
 
@@ -406,6 +407,12 @@ namespace Hooks
 			const auto manager = Data::CreatedObjectManager::GetSingleton();
 
 			if (manager->IsBaseAmmoEnchantment(a_entry->data)) {
+				const auto globalSettings = Settings::GlobalSettings::GetSingleton();
+				if (!globalSettings->AmmoEnchantingEnabled()) {
+					RE::free(a_entry);
+					return;
+				}
+
 				a_entry->filterFlag = static_cast<Menu::FilterFlag>(FilterFlag::EffectAmmo);
 			}
 		}
@@ -436,8 +443,9 @@ namespace Hooks
 			}
 		}
 		else if (const auto weapon = object->As<RE::TESObjectWEAP>()) {
-			static const auto unarmedWeapon =
-				REL::Relocation<RE::TESObjectWEAP**>{ RE::Offset::UnarmedWeapon };
+			static const auto unarmedWeapon = REL::Relocation<RE::TESObjectWEAP**>{
+				RE::Offset::UnarmedWeapon
+			};
 
 			if (weapon->weaponData.animationType == RE::WEAPON_TYPE::kStaff ||
 				disallowEnchanting && weapon->HasKeyword(disallowEnchanting) ||
@@ -454,14 +462,22 @@ namespace Hooks
 			}
 		}
 		else if (const auto ammo = object->As<RE::TESAmmo>()) {
-			if (disallowEnchanting && ammo->HasKeyword(disallowEnchanting)) {
+			const auto globalSettings = Settings::GlobalSettings::GetSingleton();
+			if (!globalSettings->AmmoEnchantingEnabled() ||
+				(disallowEnchanting && ammo->HasKeyword(disallowEnchanting))) {
+
 				return FilterFlag::None;
 			}
 			else if (!a_entry->IsEnchanted() && !Ext::TESAmmo::GetEnchantment(ammo)) {
 				return FilterFlag::EnchantAmmo;
 			}
 			else {
-				return FilterFlag::DisenchantAmmo;
+				if (globalSettings->AmmoEnchantingAllowDisenchant()) {
+					return FilterFlag::DisenchantAmmo;
+				}
+				else {
+					return FilterFlag::None;
+				}
 			}
 		}
 		else if (const auto soulGem = object->As<RE::TESSoulGem>()) {
