@@ -210,9 +210,12 @@ namespace Hooks
 		const auto extraLists = bothHands ? bothHands->extraLists : nullptr;
 		const auto extraList = extraLists && !extraLists->empty() ? extraLists->front() : nullptr;
 
-		if (extraList) {
-			a_data->data = extraList->GetCount();
+		if (!extraList) {
+			return _AddMessage(a_queue, a_menuName, a_type, a_data);
 		}
+
+		std::int32_t delta = a_data->data - bothHands->countDelta;
+		a_data->data = static_cast<std::uint32_t>(extraList->GetCount() + delta);
 
 		return _AddMessage(a_queue, a_menuName, a_type, a_data);
 	}
