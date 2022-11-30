@@ -21,6 +21,8 @@ namespace logger = SKSE::log;
 namespace util
 {
 	using SKSE::stl::report_and_fail;
+	using SKSE::stl::utf8_to_utf16;
+	using SKSE::stl::utf16_to_utf8;
 	using SKSE::stl::to_underlying;
 
 	inline std::uintptr_t object_ptr(void* obj)

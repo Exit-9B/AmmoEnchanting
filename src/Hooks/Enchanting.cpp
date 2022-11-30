@@ -4,6 +4,7 @@
 #include "Ext/EnchantConstructMenu.h"
 #include "RE/Offset.h"
 #include "Settings/INISettings.h"
+#include "Translation/Translation.h"
 
 #include <xbyak/xbyak.h>
 
@@ -215,13 +216,16 @@ namespace Hooks
 	void Enchanting::SetConfirmText(RE::BSString* a_str, const char* a_sEnchantItem)
 	{
 		if (availableCount < creatingCount) {
-			_SetStr(
-				a_str,
-				fmt::format(
-					"Enchantment charges: {}. You only have {} of the selected item."sv,
-					creatingCount,
-					availableCount)
-					.data());
+			std::string fmt;
+			if (!Translation::ScaleformTranslate("$AMEN_NotEnoughArrows{}{}"s, fmt)) {
+				fmt = "Enchantment charges: {}. You only have {} of the selected item."s;
+			}
+
+			std::string msg = fmt::vformat(
+				fmt,
+				fmt::make_format_args(creatingCount, availableCount));
+
+			_SetStr(a_str, msg.data());
 		}
 		else {
 			_SetStr(a_str, a_sEnchantItem);

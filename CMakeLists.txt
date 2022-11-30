@@ -64,3 +64,10 @@ install(
 	DESTINATION
 		"Meshes/AmmoEnchanting"
 )
+
+install(
+	FILES
+		"${PROJECT_SOURCE_DIR}/data/Interface/Translations/AmmoEnchanting_ENGLISH.txt"
+	DESTINATION
+		"Interface/Translations"
+)
