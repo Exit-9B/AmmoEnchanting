@@ -5,6 +5,7 @@
 #include "Hooks/Misc.h"
 #include "Hooks/SkyUI.h"
 #include "Hooks/VFX.h"
+#include "Papyrus/AmmoEnchanting.h"
 #include "Serialization/Serialization.h"
 #include "Settings/INISettings.h"
 
@@ -73,6 +74,9 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	serialization->SetSaveCallback(&Serialization::SaveCallback);
 	serialization->SetLoadCallback(&Serialization::LoadCallback);
 	serialization->SetRevertCallback(&Serialization::RevertCallback);
+
+	const auto papyrus = SKSE::GetPapyrusInterface();
+	papyrus->Register(&Papyrus::AmmoEnchanting::RegisterFuncs);
 
 	Settings::INISettings::GetSingleton()->LoadSettings();
 

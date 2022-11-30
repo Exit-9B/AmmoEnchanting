@@ -17,8 +17,10 @@ endif()
 list(APPEND CMAKE_IGNORE_PATH "${PROJECT_BINARY_DIR}")
 list(APPEND CMAKE_MODULE_PATH
 	"${PROJECT_SOURCE_DIR}/tools/SKSE-CMakeModules/Modules"
+	"${PROJECT_SOURCE_DIR}/tools/BethesdaCMakeModules/Modules"
 )
 include(SKSEPlugin)
+include(Papyrus)
 
 set(SKSE_USE_XBYAK ON)
 set(SKSE_SUPPORT_VR OFF)
@@ -41,6 +43,18 @@ target_include_directories(
 	${PROJECT_NAME}
 	PRIVATE
 		${SIMPLEINI_INCLUDE_DIRS}
+)
+
+Papyrus_Add(
+	"PapyrusAPI"
+	GAME ${SkyrimSE_PATH}
+	IMPORTS
+		"${PROJECT_SOURCE_DIR}/scripts"
+	SOURCES
+		"${PROJECT_SOURCE_DIR}/scripts/AmmoEnchanting.psc"
+	OPTIMIZE
+	ANONYMIZE
+	COMPONENT ${CMAKE_INSTALL_DEFAULT_COMPONENT_NAME}
 )
 
 install(
