@@ -86,7 +86,10 @@ namespace Hooks
 			Patch()
 			{
 				mov(rdx, rsi);
-				mov(ecx, dword[rsi + 0x1E8]);  // createEffectFunctor.formtype
+				mov(ecx,
+					dword
+						[rsi + offsetof(Menu, createEffectFunctor) +
+						 offsetof(Menu::CreateEffectFunctor, formType)]);
 				mov(rax, util::function_ptr(&Enchanting::CreateEnchantment));
 				call(rax);
 			}
