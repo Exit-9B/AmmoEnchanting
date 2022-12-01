@@ -13,6 +13,7 @@ namespace Hooks
 		AttachArrowPatch();
 		FireArrowPatch();
 		CameraSwitchPatch();
+		InitWornPatch();
 	}
 
 	void VFX::EquipAmmoPatch()
@@ -79,6 +80,40 @@ namespace Hooks
 
 		auto& trampoline = SKSE::GetTrampoline();
 		_IsTaskPoolRequired = trampoline.write_call<5>(hook.address(), &VFX::ResetVisuals);
+	}
+
+	void VFX::InitWornPatch()
+	{
+		static auto PlayerCharacter_vtbl =
+			REL::Relocation<std::uintptr_t>(RE::Offset::PlayerCharacter::Vtbl);
+
+		_InitWornObjects = PlayerCharacter_vtbl.write_vfunc(106, &VFX::InitWornObjects);
+	}
+
+	void VFX::UpdateVFX(RE::Actor* a_actor)
+	{
+		const auto enchantArtManager = Data::EnchantArtManager::GetSingleton();
+		RE::EnchantmentItem* enchantment = nullptr;
+
+		const auto process = a_actor->currentProcess;
+		const auto middleHigh = process ? process->middleHigh : nullptr;
+		const auto bothHands = middleHigh ? middleHigh->bothHands : nullptr;
+		if (bothHands && bothHands->object) {
+			if (const auto ammo = bothHands->object->As<RE::TESAmmo>()) {
+				enchantment = Ext::TESAmmo::GetEnchantment(ammo);
+
+				if (const auto& extraLists = bothHands->extraLists) {
+					for (const auto& extraList : *extraLists) {
+						const auto exEnch = extraList->GetByType<RE::ExtraEnchantment>();
+						if (exEnch && exEnch->enchantment) {
+							enchantment = exEnch->enchantment;
+						}
+					}
+				}
+			}
+		}
+
+		enchantArtManager->UpdateAmmoEnchantment(a_actor, enchantment);
 	}
 
 	void VFX::DoEquipObject(
@@ -152,5 +187,14 @@ namespace Hooks
 	{
 		Data::EnchantArtManager::GetSingleton()->ResetArrow(a_player, a_firstPerson);
 		return _IsTaskPoolRequired();
+	}
+
+	RE::NiAVObject* VFX::InitWornObjects(
+		RE::Actor* a_actor,
+		bool a_backgroundLoading)
+	{
+		auto result = _InitWornObjects(a_actor, a_backgroundLoading);
+		UpdateVFX(a_actor);
+		return result;
 	}
 }
