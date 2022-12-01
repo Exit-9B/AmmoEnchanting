@@ -1,0 +1,43 @@
+<!-- Created with FOMOD Creation Tool 1.7.0.37 [http://www.nexusmods.com/fallout4/mods/6821] --> 
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd"> 
+	<moduleName>Ammo Enchanting</moduleName> 
+	<requiredInstallFiles> 
+		<file source="AmmoEnchanting.esp" destination="AmmoEnchanting.esp" /> 
+		<file source="AmmoEnchanting_KID.ini" destination="AmmoEnchanting_KID.ini" /> 
+		<folder source="Interface" destination="Interface" /> 
+		<folder source="Meshes" destination="Meshes" /> 
+		<folder source="Scripts" destination="Scripts" /> 
+		<folder source="SKSE" destination="SKSE" /> 
+		<folder source="Source" destination="Source" /> 
+	</requiredInstallFiles> 
+	<installSteps order="Explicit"> 
+		<installStep name="Creation Club"> 
+			<optionalFileGroups order="Explicit"> 
+				<group name="Creation Club" type="SelectAny"> 
+					<plugins order="Explicit"> 
+						<plugin name="Arcane Archer Pack"> 
+							<description>Install the patch for Creation Club: Arcane Archer Pack.</description> 
+							<image path="fomod\images\Arcane_Archer_Pack.jpg" /> 
+							<files> 
+								<file source="AmmoEnchanting_ExoticArrows.esp" destination="AmmoEnchanting_ExoticArrows.esp" priority="0" /> 
+							</files> 
+							<typeDescriptor> 
+								<dependencyType> 
+									<defaultType name="Optional"/> 
+									<patterns> 
+										<pattern> 
+											<dependencies operator="And"> 
+												<fileDependency file="ccBGSSSE002-ExoticArrows.esl" state="Active"/> 
+											</dependencies> 
+											<type name="Recommended"/> 
+										</pattern> 
+									</patterns> 
+								</dependencyType> 
+							</typeDescriptor> 
+						</plugin> 
+					</plugins> 
+				</group> 
+			</optionalFileGroups> 
+		</installStep> 
+	</installSteps> 
+</config>

@@ -91,3 +91,26 @@ install(
 	DESTINATION
 		"Interface/Translations"
 )
+
+install(
+	FILES
+		"${PROJECT_SOURCE_DIR}/data/fomod/ModuleConfig.xml"
+		"${PROJECT_SOURCE_DIR}/data/fomod/info.xml"
+	DESTINATION
+		"fomod"
+)
+
+install(
+	FILES
+		"${PROJECT_SOURCE_DIR}/data/fomod/images/Arcane_Archer_Pack.jpg"
+	DESTINATION
+		"fomod/images"
+)
+
+set(CPACK_GENERATOR "7Z")
+set(CPACK_PACKAGE_FILE_NAME ${PROJECT_NAME}-${PROJECT_VERSION})
+if(BUILD_BACKPORT)
+	string(APPEND CPACK_PACKAGE_FILE_NAME "-1.6.353")
+endif()
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
+include(CPack)
