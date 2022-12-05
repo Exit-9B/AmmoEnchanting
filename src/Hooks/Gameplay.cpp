@@ -174,11 +174,11 @@ namespace Hooks
 
 		auto explosion = a_launchData->projectile->data.explosionType;
 
-		if (!a_launchData->aggressor || !a_launchData->sourceAmmo)
+		if (!a_launchData->source || !a_launchData->sourceAmmo)
 			return explosion;
 
-		const auto& actor = a_launchData->aggressor;
-		const auto& actorProcess = actor->currentProcess;
+		const auto actor = a_launchData->source->As<RE::Character>();
+		const auto& actorProcess = actor ? actor->currentProcess : nullptr;
 		const auto middleHigh = actorProcess ? actorProcess->middleHigh : nullptr;
 		const auto bothHands = middleHigh ? middleHigh->bothHands : nullptr;
 		const auto extraLists = bothHands ? bothHands->extraLists : nullptr;
