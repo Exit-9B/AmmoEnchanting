@@ -4,8 +4,6 @@
 
 #include <xbyak/xbyak.h>
 
-#undef GetObject
-
 namespace Hooks
 {
 	void SkyUI::Install()

@@ -1,8 +1,6 @@
 #include "EnchantConstructMenu.h"
 #include <algorithm>
 
-#undef GetObject
-
 namespace Ext
 {
 	bool EnchantConstructMenu::CanSelectEntry(

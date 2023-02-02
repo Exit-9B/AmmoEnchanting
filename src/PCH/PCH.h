@@ -1,8 +1,5 @@
 #pragma once
 
-#pragma warning(disable : 5105)
-#pragma warning(push, 0)
-
 #include <RE/Skyrim.h>
 #include <SKSE/SKSE.h>
 
@@ -11,8 +8,6 @@
 #else
 #	include <spdlog/sinks/msvc_sink.h>
 #endif
-
-#pragma warning(pop)
 
 using namespace std::literals;
 

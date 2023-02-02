@@ -3,9 +3,8 @@
 #include "Data/CreatedObjectManager.h"
 #include "RE/Offset.h"
 
+#define NOGDI
 #include <xbyak/xbyak.h>
-
-#undef GetObject
 
 namespace Hooks
 {

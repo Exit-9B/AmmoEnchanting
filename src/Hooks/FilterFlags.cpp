@@ -5,9 +5,8 @@
 #include "RE/Offset.h"
 #include "Settings/GlobalSettings.h"
 
+#define NOGDI
 #include <xbyak/xbyak.h>
-
-#undef GetObject
 
 namespace Hooks
 {
