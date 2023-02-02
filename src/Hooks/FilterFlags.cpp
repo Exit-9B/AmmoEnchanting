@@ -62,11 +62,12 @@ namespace Hooks
 
 	void FilterFlags::ItemEntryPatch()
 	{
+		// Hook after the IsQuestObject call to play nice with Essential Favorites
 		static const auto hook = REL::Relocation<std::uintptr_t>(
 			RE::Offset::CraftingSubMenus::EnchantConstructMenu::PopulateEntryList,
-			0x140);
+			0x14D);
 
-		if (!REL::make_pattern<"E8">().match(hook.address())) {
+		if (!REL::make_pattern<"48 8B CB">().match(hook.address())) {
 			util::report_and_fail("FilterFlags::ItemEntryPatch failed to install"sv);
 		}
 
@@ -76,6 +77,7 @@ namespace Hooks
 			{
 				Xbyak::Label skip;
 
+				mov(rcx, rsi);
 				mov(rax, util::function_ptr(&FilterFlags::GetFilterFlag));
 				call(rax);
 				test(eax, eax);
@@ -84,20 +86,20 @@ namespace Hooks
 				mov(edi, eax);
 
 				jmp(ptr[rip]);
-				dq(hook.address() + 0xDD);
+				dq(hook.address() + 0xD0);
 
 				L(skip);
 				jmp(ptr[rip]);
-				dq(hook.address() + 0x1D4);
+				dq(hook.address() + 0x1C7);
 			}
 		};
 
 		Patch patch{};
 		patch.ready();
 
-		assert(patch.getSize() <= 0xDD);
+		assert(patch.getSize() <= 0xD0);
 
-		REL::safe_fill(hook.address(), REL::NOP, 0xDD);
+		REL::safe_fill(hook.address(), REL::NOP, 0xD0);
 		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
 	}
 
@@ -423,7 +425,8 @@ namespace Hooks
 	{
 		const auto object = a_entry->GetObject();
 
-		if (a_entry->IsQuestObject() || !object || !object->GetName() || !object->GetPlayable())
+		// IsQuestObject was checked before the hook
+		if (!object || !object->GetName() || !object->GetPlayable())
 			return FilterFlag::None;
 
 		const auto defaultObjects = RE::BGSDefaultObjectManager::GetSingleton();
