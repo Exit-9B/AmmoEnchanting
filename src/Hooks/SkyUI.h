@@ -25,6 +25,8 @@ namespace Hooks
 			RE::GPtr<RE::GFxMovieView>& a_view,
 			RE::TESFurniture* a_furniture);
 
+		static void OverrideConfig(RE::GFxValue& a_config);
+
 		static void SetItemData(
 			Menu::CategoryListEntry* a_entry,
 			RE::GFxValue* a_dataContainer);

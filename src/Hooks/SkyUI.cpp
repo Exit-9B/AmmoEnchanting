@@ -8,8 +8,7 @@ namespace Hooks
 {
 	void SkyUI::Install()
 	{
-		// This one doesn't actually seem to be necessary
-		// FilterFlagPatch();
+		FilterFlagPatch();
 		ItemDataPatch();
 	}
 
@@ -73,32 +72,49 @@ namespace Hooks
 		RE::GPtr<RE::GFxMovieView>& a_view,
 		RE::TESFurniture* a_furniture)
 	{
-		RE::GFxValue filterFlagItem;
-		a_view->GetVariable(&filterFlagItem, "skyui.defines.Inventory.FILTERFLAG_ENCHANTING_ITEM");
-
-		if (filterFlagItem.IsNumber()) {
-			filterFlagItem.SetNumber(FilterFlag::Item);
-		}
-
-		RE::GFxValue filterFlagDisenchant;
-		a_view->GetVariable(
-			&filterFlagDisenchant,
-			"skyui.defines.Inventory.FILTERFLAG_ENCHANTING_DISENCHANT");
-
-		if (filterFlagDisenchant.IsNumber()) {
-			filterFlagDisenchant.SetNumber(FilterFlag::Disenchant);
-		}
-
-		RE::GFxValue filterFlagEnchantment;
-		a_view->GetVariable(
-			&filterFlagEnchantment,
-			"skyui.defines.Inventory.FILTERFLAG_ENCHANTING_ENCHANTMENT");
-
-		if (filterFlagEnchantment.IsNumber()) {
-			filterFlagEnchantment.SetNumber(FilterFlag::Enchantment);
+		RE::GFxValue config;
+		a_view->GetVariable(&config, "skyui.util.ConfigManager._config");
+		if (config.IsObject()) {
+			OverrideConfig(config);
 		}
 
 		return _EnchantConstructMenu_ctor(a_subMenu, a_view, a_furniture);
+	}
+
+	void SkyUI::OverrideConfig(RE::GFxValue& a_config)
+	{
+		RE::GFxValue listLayout;
+		a_config.GetMember("ListLayout", &listLayout);
+		if (!listLayout.IsObject()) {
+			return;
+		}
+
+		RE::GFxValue views;
+		listLayout.GetMember("views", &views);
+		if (!views.IsObject()) {
+			return;
+		}
+
+		RE::GFxValue view;
+		RE::GFxValue category;
+
+		views.GetMember("disenchantView", &view);
+		if (view.IsObject()) {
+			category.SetNumber(FilterFlag::Disenchant);
+			view.SetMember("category", category);
+		}
+
+		views.GetMember("enchantItemView", &view);
+		if (view.IsObject()) {
+			category.SetNumber(FilterFlag::Item);
+			view.SetMember("category", category);
+		}
+
+		views.GetMember("enchantEnchantmentView", &view);
+		if (view.IsObject()) {
+			category.SetNumber(FilterFlag::Enchantment);
+			view.SetMember("category", category);
+		}
 	}
 
 	void SkyUI::SetItemData(Menu::CategoryListEntry* a_entry, RE::GFxValue* a_dataContainer)
