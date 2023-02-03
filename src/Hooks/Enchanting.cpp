@@ -1,6 +1,7 @@
 #include "Enchanting.h"
 
 #include "Data/CreatedObjectManager.h"
+#include "Data/EnchantArtManager.h"
 #include "Ext/EnchantConstructMenu.h"
 #include "RE/Offset.h"
 #include "Settings/INISettings.h"
@@ -14,6 +15,7 @@ namespace Hooks
 	{
 		ItemPreviewPatch();
 		CraftItemPatch();
+		EnchantArtPatch();
 		EnchantConfirmPatch();
 		AmmoQuantityPatch();
 		InventoryNotificationPatch();
@@ -103,6 +105,20 @@ namespace Hooks
 		REL::safe_write(hook.address(), patch.getCode(), patch.getSize());
 	}
 
+	void Enchanting::EnchantArtPatch()
+	{
+		static const auto hook = REL::Relocation<std::uintptr_t>(
+			RE::Offset::CraftingSubMenus::EnchantConstructMenu::CraftItem,
+			0x17C);
+
+		if (!REL::make_pattern<"E8">().match(hook.address())) {
+			util::report_and_fail("Enchanting::EnchantArtPatch failed to install"sv);
+		}
+
+		auto& trampoline = SKSE::GetTrampoline();
+		_UpdateWeaponAbility = trampoline.write_call<5>(hook.address(), &UpdateWeaponAbility);
+	}
+
 	void Enchanting::EnchantConfirmPatch()
 	{
 		static const auto hook = REL::Relocation<std::uintptr_t>(
@@ -126,7 +142,7 @@ namespace Hooks
 
 		static const auto hook2 = REL::Relocation<std::uintptr_t>(
 			RE::Offset::InventoryChanges::EnchantObject,
-			0xA5);
+			0xFB);
 
 		static const auto hook3 = REL::Relocation<std::uintptr_t>(
 			RE::Offset::InventoryChanges::EnchantObject,
@@ -143,9 +159,7 @@ namespace Hooks
 
 		_GetCount = trampoline.write_call<5>(hook1.address(), &Enchanting::GetCount);
 
-		_SetBaseItemCount = trampoline.write_call<5>(
-			hook2.address(),
-			&Enchanting::SetBaseItemCount);
+		_CopyExtraData = trampoline.write_call<5>(hook2.address(), &Enchanting::CopyExtraData);
 
 		_SetEnchantment = trampoline.write_call<5>(hook3.address(), &Enchanting::SetExtraData);
 	}
@@ -189,25 +203,25 @@ namespace Hooks
 		RE::FormType a_formType,
 		RE::CraftingSubMenus::EnchantConstructMenu* a_menu)
 	{
-		customName = a_menu->customName.c_str();
-		availableCount = a_menu->selected.item
+		_customName = a_menu->customName.c_str();
+		_availableCount = a_menu->selected.item
 			? static_cast<std::uint16_t>(a_menu->selected.item->data->countDelta)
 			: 0;
 
 		switch (a_formType) {
 
 		case RE::FormType::Armor:
-			creatingCount = 1;
+			_creatingCount = 1;
 			return RE::BGSCreatedObjectManager::GetSingleton()->CreateArmorEnchantment(
 				a_menu->createEffectFunctor.createdEffects);
 
 		case RE::FormType::Weapon:
-			creatingCount = 1;
+			_creatingCount = 1;
 			return RE::BGSCreatedObjectManager::GetSingleton()->CreateWeaponEnchantment(
 				a_menu->createEffectFunctor.createdEffects);
 
 		case RE::FormType::Ammo:
-			creatingCount = Ext::EnchantConstructMenu::GetAmmoEnchantQuantity(a_menu);
+			_creatingCount = Ext::EnchantConstructMenu::GetAmmoEnchantQuantity(a_menu);
 			return Data::CreatedObjectManager::GetSingleton()->CreateAmmoEnchantment(
 				a_menu->createEffectFunctor.createdEffects);
 
@@ -216,9 +230,26 @@ namespace Hooks
 		}
 	}
 
+	void Enchanting::UpdateWeaponAbility(
+		RE::Actor* a_actor,
+		RE::TESForm* a_item,
+		RE::ExtraDataList* a_extraList,
+		bool a_wornLeft)
+	{
+		if (a_item->IsWeapon()) {
+			_UpdateWeaponAbility(a_actor, a_item, a_extraList, a_wornLeft);
+		}
+		else if (a_item->IsAmmo()) {
+			const auto exEnchantment = a_extraList->GetByType<RE::ExtraEnchantment>();
+			const auto enchantment = exEnchantment ? exEnchantment->enchantment : nullptr;
+
+			Data::EnchantArtManager::GetSingleton()->UpdateAmmoEnchantment(a_actor, enchantment);
+		}
+	}
+
 	void Enchanting::SetConfirmText(RE::BSString* a_str, const char* a_sEnchantItem)
 	{
-		if (availableCount < creatingCount) {
+		if (_availableCount < _creatingCount) {
 			std::string fmt;
 			if (!Translation::ScaleformTranslate("$AMEN_NotEnoughArrows{}{}"s, fmt)) {
 				fmt = "Enchantment charges: {}. You only have {} of the selected item."s;
@@ -226,7 +257,7 @@ namespace Hooks
 
 			std::string msg = fmt::vformat(
 				fmt,
-				fmt::make_format_args(creatingCount, availableCount));
+				fmt::make_format_args(_creatingCount, _availableCount));
 
 			_SetStr(a_str, msg.data());
 		}
@@ -238,16 +269,26 @@ namespace Hooks
 	std::uint16_t Enchanting::GetCount(RE::ExtraDataList* a_extraList)
 	{
 		std::uint16_t count = _GetCount(a_extraList);
-		if (creatingCount > count) {
-			creatingCount = count;
+		if (_creatingCount > count) {
+			_creatingCount = count;
 		}
 
-		return count - creatingCount + 1;
+		return count - _creatingCount + 1;
 	}
 
-	void Enchanting::SetBaseItemCount(RE::ExtraDataList* a_extraList, std::uint16_t a_count)
+	void Enchanting::CopyExtraData(RE::ExtraDataList* a_target, RE::ExtraDataList* a_source)
 	{
-		return _SetBaseItemCount(a_extraList, a_count - creatingCount);
+		if (_creatingCount > 1) {
+			auto count = static_cast<std::uint16_t>(a_source->GetCount());
+			a_source->SetCount(count + 1 - _creatingCount);
+		}
+
+		_CopyExtraData(a_target, a_source);
+
+		// Weapons and armor can't have both ExtraCount and ExtraWorn, so it's assumed for them
+		// that if this code is running, ExtraWorn isn't in the list. This isn't the case for
+		// ammo, so we need to remove ExtraWorn from the new list being created.
+		a_target->RemoveByType(RE::ExtraDataType::kWorn);
 	}
 
 	void Enchanting::SetExtraData(
@@ -258,12 +299,12 @@ namespace Hooks
 	{
 		_SetEnchantment(a_extraList, a_enchantment, a_chargeAmount, a_removeOnUnequip);
 
-		if (creatingCount > availableCount) {
-			creatingCount = availableCount;
+		if (_creatingCount > _availableCount) {
+			_creatingCount = _availableCount;
 		}
 
-		if (creatingCount > 1) {
-			a_extraList->SetCount(creatingCount);
+		if (_creatingCount > 1) {
+			a_extraList->SetCount(_creatingCount);
 		}
 	}
 
@@ -276,11 +317,11 @@ namespace Hooks
 	{
 		// Vanilla only shows the original item name, so patch that here
 		const char* name = a_name;
-		if (customName && customName[0] != '\0') {
-			name = customName;
+		if (_customName && _customName[0] != '\0') {
+			name = _customName;
 		}
 
-		_InventoryNotification(a_item, creatingCount, a_itemAdded, a_playSound, name);
+		_InventoryNotification(a_item, _creatingCount, a_itemAdded, a_playSound, name);
 	}
 
 	void Enchanting::ApplyPerkEntries(
