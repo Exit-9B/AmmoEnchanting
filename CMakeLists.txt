@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24)
 
 project(
 	AmmoEnchanting
-	VERSION 1.0.2
+	VERSION 1.0.3
 	LANGUAGES CXX
 )
 
@@ -61,6 +61,8 @@ install(
 	FILES
 		"${PROJECT_SOURCE_DIR}/data/AmmoEnchanting.esp"
 		"${PROJECT_SOURCE_DIR}/data/AmmoEnchanting_ExoticArrows.esp"
+		"${PROJECT_SOURCE_DIR}/data/AmmoEnchanting_RCBE.esp"
+		"${PROJECT_SOURCE_DIR}/data/AmmoEnchanting_ImprovedBonemold-RCBE.esp"
 		"${PROJECT_SOURCE_DIR}/data/AmmoEnchanting_KID.ini"
 	DESTINATION
 		"."

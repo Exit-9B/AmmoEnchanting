@@ -20,6 +20,6 @@ namespace Settings
 			ini.GetDoubleValue("AmmoEnchanting", "fAmmoChargeMult", 0.2));
 
 		fAmmoEffectCostMult = static_cast<float>(
-			ini.GetDoubleValue("AmmoEnchanting", "fAmmoEffectCostMult", 1.0));
+			ini.GetDoubleValue("AmmoEnchanting", "fAmmoEffectCostMult", 0.45));
 	}
 }

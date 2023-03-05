@@ -39,5 +39,51 @@
 				</group> 
 			</optionalFileGroups> 
 		</installStep> 
+		<installStep name="Patches"> 
+			<optionalFileGroups order="Explicit"> 
+				<group name="Patches" type="SelectAny"> 
+					<plugins order="Explicit"> 
+						<plugin name="Rare Curios Bolts Expanded"> 
+							<description>Patches conflicts with Rare Curios Bolts Expanded and rebalances its gold values for Ammo Enchanting.</description> 
+							<files> 
+								<file source="AmmoEnchanting_RCBE.esp" destination="AmmoEnchanting_RCBE.esp" priority="0" /> 
+							</files> 
+							<typeDescriptor> 
+								<dependencyType> 
+									<defaultType name="Optional"/> 
+									<patterns> 
+										<pattern> 
+											<dependencies operator="And"> 
+												<fileDependency file="RareCuriosBoltsExpanded.esp" state="Active"/> 
+											</dependencies> 
+											<type name="Recommended"/> 
+										</pattern> 
+									</patterns> 
+								</dependencyType> 
+							</typeDescriptor> 
+						</plugin> 
+						<plugin name="Distinct Improved Bonemold + RCBE"> 
+							<description>Patches conflicts with the Distinct Improved Bonemold - Rare Curios Bolts Expanded patch.</description> 
+							<files> 
+								<file source="AmmoEnchanting_ImprovedBonemold-RCBE.esp" destination="AmmoEnchanting_ImprovedBonemold-RCBE.esp" priority="0" /> 
+							</files> 
+							<typeDescriptor> 
+								<dependencyType> 
+									<defaultType name="Optional"/> 
+									<patterns> 
+										<pattern> 
+											<dependencies operator="And"> 
+												<fileDependency file="JELImprovedBonemold - Rare Curios Bolts Expanded.esp" state="Active"/> 
+											</dependencies> 
+											<type name="Recommended"/> 
+										</pattern> 
+									</patterns> 
+								</dependencyType> 
+							</typeDescriptor> 
+						</plugin> 
+					</plugins> 
+				</group> 
+			</optionalFileGroups> 
+		</installStep> 
 	</installSteps> 
 </config>
